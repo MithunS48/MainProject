@@ -1,0 +1,68 @@
+============================================================
+FISH DISEASE DATASET — ANALYSIS REPORT
+============================================================
+
+PROJECT: Fish Disease Classification (4-class)
+MODELS : VGG16, MobileNetV2, ConvNeXt
+
+CLASSES:
+  1. EUS (Epizootic Ulcerative Syndrome) (EUS)
+  2. Gill Disease (gill)
+  3. Healthy (healthy)
+  4. Red Spot Disease (red_spot)
+
+------------------------------------------------------------
+ORIGINAL DATASET
+------------------------------------------------------------
+  EUS (Epizootic Ulcerative Syndrome)        864 images
+  Gill Disease                              1312 images
+  Healthy                                   1362 images
+  Red Spot Disease                          1362 images
+  TOTAL                                     4900 images
+
+------------------------------------------------------------
+AUGMENTED DATASET
+------------------------------------------------------------
+  EUS (Epizootic Ulcerative Syndrome)       4856 images
+  Gill Disease                              5248 images
+  Healthy                                   5448 images
+  Red Spot Disease                          5448 images
+  TOTAL                                    21000 images
+
+------------------------------------------------------------
+SPLIT DATASET  (Train 60% / Validation 20% / Test 20%)
+------------------------------------------------------------
+  Class                       Train     Val    Test   Total
+  --------------------------------------------------
+  EUS (Epizootic Ulcerative Syndrome)    2912     970     974    4856
+  Gill Disease                 3148    1048    1052    5248
+  Healthy                      3268    1088    1092    5448
+  Red Spot Disease             3268    1088    1092    5448
+  --------------------------------------------------
+  TOTAL                       12596    4194    4210   21000
+  PERCENTAGE                  60.0%   20.0%   20.0%
+
+------------------------------------------------------------
+IMAGE DIMENSIONS (mean over 50 samples per class)
+------------------------------------------------------------
+  Class                       Height    Width   Channels
+  ------------------------------------------------------
+  EUS (Epizootic Ulcerative Syndrome)    224.0    224.0          3
+  Gill Disease                 224.0    224.0          3
+  Healthy                      224.0    224.0          3
+  Red Spot Disease             224.0    224.0          3
+
+------------------------------------------------------------
+OUTPUT FILES
+------------------------------------------------------------
+  dataset_statistics.csv    — full per-class statistics
+  class_distribution.png    — original vs augmented bar + pie
+  split_distribution.png    — train/val/test breakdown
+  sample_images.png         — 4 sample images per class
+  image_dimensions.png      — height/width stats + scatter
+  analysis_report.txt       — this report
+
+============================================================
+NEXT STAGE: Model building
+  python src/train.py
+============================================================
