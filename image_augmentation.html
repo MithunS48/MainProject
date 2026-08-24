@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Augmentation Studio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#151b23;
+    --border:#2a323d;
+    --text:#e6edf3;
+    --muted:#8b96a5;
+    --accent:#4fd1c5;
+    --accent-dim:#1f4f4a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',Roboto,sans-serif;
+    min-height:100vh;
+  }
+  header{
+    padding:28px 40px 20px;
+    border-bottom:1px solid var(--border);
+  }
+  header h1{
+    margin:0 0 6px;
+    font-size:1.5rem;
+    letter-spacing:0.3px;
+  }
+  header p{
+    margin:0;
+    color:var(--muted);
+    font-size:0.9rem;
+  }
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding:30px 20px 60px;
+  }
+  .upload-box{
+    border:2px dashed var(--border);
+    border-radius:10px;
+    padding:40px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s, background .2s;
+    background:var(--panel);
+  }
+  .upload-box:hover, .upload-box.dragover{
+    border-color:var(--accent);
+    background:#101820;
+  }
+  .upload-box input{display:none;}
+  .upload-box .hint{color:var(--muted); font-size:0.85rem; margin-top:6px;}
+
+  .controls{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin:20px 0;
+    align-items:center;
+  }
+  .controls label{font-size:0.85rem; color:var(--muted); display:block; margin-bottom:4px;}
+  .controls input[type=number]{
+    width:70px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:6px 8px;
+    border-radius:6px;
+  }
+  button{
+    background:var(--accent);
+    color:#062824;
+    border:none;
+    padding:10px 18px;
+    border-radius:6px;
+    font-weight:600;
+    cursor:pointer;
+    font-size:0.9rem;
+  }
+  button:hover{background:#6fe0d5;}
+  button.secondary{
+    background:transparent;
+    border:1px solid var(--accent);
+    color:var(--accent);
+  }
+  button.secondary:hover{background:var(--accent-dim);}
+  button:disabled{opacity:0.4; cursor:not-allowed;}
+
+  #preview-original{
+    max-width:220px;
+    max-height:220px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    margin-top:14px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    gap:16px;
+    margin-top:28px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .card img{
+    width:100%;
+    display:block;
+    aspect-ratio:1/1;
+    object-fit:cover;
+    background:#000;
+  }
+  .card .label{
+    padding:8px 10px;
+    font-size:0.78rem;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .card a{
+    color:var(--accent);
+    text-decoration:none;
+    font-size:0.75rem;
+  }
+  .actions-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:24px;
+  }
+  .status{color:var(--muted); font-size:0.85rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Image Augmentation Studio</h1>
+  <p>Upload a photo &rarr; generate side views (flip/tilt) and zoom in/out variants &rarr; download for your pipeline.</p>
+</header>
+
+<main>
+  <div class="upload-box" id="uploadBox">
+    <div>Click to upload, or drag and drop an image here</div>
+    <div class="hint">JPG / PNG, single image</div>
+    <input type="file" id="fileInput" accept="image/*">
+    <div id="originalWrap" style="display:none;">
+      <img id="preview-original" alt="original preview">
+    </div>
+  </div>
+
+  <div class="controls">
+    <div>
+      <label for="tiltDeg">Turn angle (&deg;)</label>
+      <input type="number" id="tiltDeg" value="15" min="1" max="45">
+    </div>
+    <div>
+      <label for="zoomInAmt">Zoom in factor</label>
+      <input type="number" id="zoomInAmt" value="1.4" min="1.05" max="3" step="0.1">
+    </div>
+    <div>
+      <label for="zoomOutAmt">Zoom out factor</label>
+      <input type="number" id="zoomOutAmt" value="0.7" min="0.2" max="0.95" step="0.05">
+    </div>
+  </div>
+
+  <div class="controls" id="actionButtons">
+    <button class="secondary" data-action="flipH" disabled>Flip Horizontal</button>
+    <button class="secondary" data-action="flipV" disabled>Flip Vertical</button>
+    <button class="secondary" data-action="turnLeft" disabled>Turn Left</button>
+    <button class="secondary" data-action="turnRight" disabled>Turn Right</button>
+    <button class="secondary" data-action="zoomIn" disabled>Zoom In</button>
+    <button class="secondary" data-action="zoomOut" disabled>Zoom Out</button>
+    <button id="generateBtn" disabled>Generate All</button>
+  </div>
+
+  <div class="actions-bar">
+    <span class="status" id="status">No image uploaded yet.</span>
+    <button class="secondary" id="downloadAllBtn" style="display:none;">Download all (.zip)</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</main>
+
+<script>
+const uploadBox = document.getElementById('uploadBox');
+const fileInput = document.getElementById('fileInput');
+const previewOriginal = document.getElementById('preview-original');
+const originalWrap = document.getElementById('originalWrap');
+const generateBtn = document.getElementById('generateBtn');
+const grid = document.getElementById('grid');
+const status = document.getElementById('status');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const actionButtons = document.querySelectorAll('#actionButtons button');
+
+let currentImage = null; // HTMLImageElement
+let generatedFiles = []; // {name, dataUrl}
+
+uploadBox.addEventListener('click', (e) => {
+  if (e.target.id !== 'fileInput') fileInput.click();
+});
+uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.classList.add('dragover'); });
+uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('dragover'));
+uploadBox.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadBox.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file){
+  if (!file.type.startsWith('image/')) {
+    status.textContent = 'Please upload a valid image file.';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      currentImage = img;
+      previewOriginal.src = ev.target.result;
+      originalWrap.style.display = 'block';
+      generateBtn.disabled = false;
+      actionButtons.forEach(btn => btn.disabled = false);
+      status.textContent = `Loaded: ${file.name} (${img.width}x${img.height})`;
+      grid.innerHTML = '';
+      downloadAllBtn.style.display = 'none';
+      generatedFiles = [];
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function canvasFrom(img){
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  return c;
+}
+
+function flipHorizontal(img){
+  const c = canvasFrom(img);
+  const ctx = c.getContext('2d');
+  ctx.translate(c.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(img, 0, 0);
+  return c;
+}
+
+function flipVertical(img){
+  const c = canvasFrom(img);
+  const ctx = c.getContext('2d');
+  ctx.translate(0, c.height);
+  ctx.scale(1, -1);
+  ctx.drawImage(img, 0, 0);
+  return c;
+}
+
+function tilt(img, degrees){
+  const c = canvasFrom(img);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate(degrees * Math.PI / 180);
+  ctx.drawImage(img, -img.width / 2, -img.height / 2);
+  return c;
+}
+
+function zoom(img, factor){
+  const c = canvasFrom(img);
+  const ctx = c.getContext('2d');
+  const w = img.width, h = img.height;
+
+  if (factor > 1){
+    // Zoom in: crop center region, draw scaled to fill canvas
+    const cropW = w / factor;
+    const cropH = h / factor;
+    const sx = (w - cropW) / 2;
+    const sy = (h - cropH) / 2;
+    ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, w, h);
+  } else {
+    // Zoom out: shrink image, pad with black
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, w, h);
+    const newW = w * factor;
+    const newH = h * factor;
+    const dx = (w - newW) / 2;
+    const dy = (h - newH) / 2;
+    ctx.drawImage(img, dx, dy, newW, newH);
+  }
+  return c;
+}
+
+function addResultToGrid(name, canvas){
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  // avoid duplicate filenames piling up in the zip export
+  const existingIdx = generatedFiles.findIndex(f => f.name === name + '.jpg');
+  if (existingIdx !== -1) generatedFiles.splice(existingIdx, 1);
+  generatedFiles.push({ name: name + '.jpg', dataUrl });
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img src="${dataUrl}" alt="${name}">
+    <div class="label">
+      <span>${name}</span>
+      <a download="${name}.jpg" href="${dataUrl}">Download</a>
+    </div>
+  `;
+  grid.prepend(card);
+  downloadAllBtn.style.display = 'inline-block';
+  status.textContent = `Added: ${name}`;
+}
+
+actionButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!currentImage) return;
+    const tiltDeg = parseFloat(document.getElementById('tiltDeg').value) || 15;
+    const zoomInAmt = parseFloat(document.getElementById('zoomInAmt').value) || 1.4;
+    const zoomOutAmt = parseFloat(document.getElementById('zoomOutAmt').value) || 0.7;
+    const action = btn.dataset.action;
+    if (!action) return; // skip the "Generate All" button, handled separately
+
+    switch(action){
+      case 'flipH':
+        addResultToGrid('flip_horizontal', flipHorizontal(currentImage));
+        break;
+      case 'flipV':
+        addResultToGrid('flip_vertical', flipVertical(currentImage));
+        break;
+      case 'turnLeft':
+        addResultToGrid(`turn_left_${tiltDeg}deg`, tilt(currentImage, -tiltDeg));
+        break;
+      case 'turnRight':
+        addResultToGrid(`turn_right_${tiltDeg}deg`, tilt(currentImage, tiltDeg));
+        break;
+      case 'zoomIn':
+        addResultToGrid(`zoom_in_${zoomInAmt}x`, zoom(currentImage, zoomInAmt));
+        break;
+      case 'zoomOut':
+        addResultToGrid(`zoom_out_${zoomOutAmt}x`, zoom(currentImage, zoomOutAmt));
+        break;
+    }
+  });
+});
+
+function generate(){
+  if (!currentImage) return;
+  grid.innerHTML = '';
+  generatedFiles = [];
+
+  const tiltDeg = parseFloat(document.getElementById('tiltDeg').value) || 15;
+  const zoomInAmt = parseFloat(document.getElementById('zoomInAmt').value) || 1.4;
+  const zoomOutAmt = parseFloat(document.getElementById('zoomOutAmt').value) || 0.7;
+
+  const variants = [
+    { name: 'flip_horizontal', canvas: flipHorizontal(currentImage) },
+    { name: 'flip_vertical', canvas: flipVertical(currentImage) },
+    { name: `tilt_left_${tiltDeg}deg`, canvas: tilt(currentImage, -tiltDeg) },
+    { name: `tilt_right_${tiltDeg}deg`, canvas: tilt(currentImage, tiltDeg) },
+    { name: `zoom_in_${zoomInAmt}x`, canvas: zoom(currentImage, zoomInAmt) },
+    { name: `zoom_out_${zoomOutAmt}x`, canvas: zoom(currentImage, zoomOutAmt) },
+  ];
+
+  variants.forEach(v => {
+    const dataUrl = v.canvas.toDataURL('image/jpeg', 0.92);
+    generatedFiles.push({ name: v.name + '.jpg', dataUrl });
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${dataUrl}" alt="${v.name}">
+      <div class="label">
+        <span>${v.name}</span>
+        <a download="${v.name}.jpg" href="${dataUrl}">Download</a>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  status.textContent = `Generated ${variants.length} augmented images.`;
+  downloadAllBtn.style.display = 'inline-block';
+}
+
+generateBtn.addEventListener('click', generate);
+
+downloadAllBtn.addEventListener('click', async () => {
+  if (!generatedFiles.length) return;
+  const zip = new JSZip();
+  generatedFiles.forEach(f => {
+    const base64 = f.dataUrl.split(',')[1];
+    zip.file(f.name, base64, { base64: true });
+  });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'augmented_images.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
