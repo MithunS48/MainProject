@@ -1,0 +1,5 @@
+class,class_label,original_images,augmented_images,train_images,validation_images,test_images,total_split_images,train_pct,validation_pct,test_pct,class_pct_of_total,height_mean,width_mean,channels
+EUS,EUS (Epizootic Ulcerative Syndrome),864,4856,2912,970,974,4856,60.0,20.0,20.1,23.1,224.0,224.0,3
+gill,Gill Disease,1312,5248,3148,1048,1052,5248,60.0,20.0,20.0,25.0,224.0,224.0,3
+healthy,Healthy,1362,5448,3268,1088,1092,5448,60.0,20.0,20.0,25.9,224.0,224.0,3
+red_spot,Red Spot Disease,1362,5448,3268,1088,1092,5448,60.0,20.0,20.0,25.9,224.0,224.0,3
