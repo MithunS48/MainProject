@@ -112,6 +112,51 @@ def horizontal_flip(image):
 
 
 # ============================================================
+# VERTICAL FLIP
+# ============================================================
+
+def vertical_flip(image):
+
+    return cv2.flip(
+        image,
+        0
+    )
+
+
+# ============================================================
+# ZOOM
+# ============================================================
+
+def zoom_image(image, zoom_factor):
+    """
+    zoom_factor > 1.0 zooms in (crops centre and resizes back)
+    zoom_factor < 1.0 zooms out (adds border padding)
+    """
+
+    height, width = image.shape[:2]
+
+    new_h = int(height / zoom_factor)
+    new_w = int(width / zoom_factor)
+
+    # Clamp so we never exceed original dimensions
+    new_h = max(1, min(new_h, height))
+    new_w = max(1, min(new_w, width))
+
+    y1 = (height - new_h) // 2
+    x1 = (width - new_w) // 2
+
+    cropped = image[y1:y1 + new_h, x1:x1 + new_w]
+
+    zoomed = cv2.resize(
+        cropped,
+        (width, height),
+        interpolation=cv2.INTER_AREA
+    )
+
+    return zoomed
+
+
+# ============================================================
 # WIDTH / HEIGHT SHIFT
 # ============================================================
 
@@ -212,6 +257,26 @@ def generate_augmented_image(
 
         return horizontal_flip(
             image
+        )
+
+    elif augmentation_type == "vflip":
+
+        return vertical_flip(
+            image
+        )
+
+    elif augmentation_type == "zoom_in":
+
+        return zoom_image(
+            image,
+            1.3
+        )
+
+    elif augmentation_type == "zoom_out":
+
+        return zoom_image(
+            image,
+            0.75
         )
 
     elif augmentation_type == "shift":
@@ -349,6 +414,12 @@ def generate_augmented_image(
 AUGMENTATION_TYPES = [
 
     "flip",
+
+    "vflip",
+
+    "zoom_in",
+
+    "zoom_out",
 
     "shift",
 
