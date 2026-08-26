@@ -1,0 +1,20 @@
+{
+    "model": "MobileNetV2",
+    "image_size": "128x128",
+    "test_accuracy": 0.8798099756240845,
+    "precision": 0.8855521772177409,
+    "recall": 0.8798099762470308,
+    "f1_score": 0.880015304399025,
+    "training_time_seconds": 407.56376099586487,
+    "total_parameters": 2422468,
+    "trainable_parameters": 164484,
+    "classes": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "training_images": 6298,
+    "validation_images": 2097,
+    "test_images": 2105
+}
