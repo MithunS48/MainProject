@@ -21,3 +21,6 @@ venv/
 Thumbs.db
 
 node_modules/
+# Deep learning trained models and checkpoints
+deep_learning/models/*.keras
+deep_learning/results/*/checkpoints/
