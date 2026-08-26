@@ -1,0 +1,29 @@
+{
+    "model": "VGG16",
+    "classes": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "image_size": [
+        224,
+        224
+    ],
+    "batch_size": 32,
+    "maximum_epochs": 10,
+    "epochs_completed": 10,
+    "learning_rate": 0.0001,
+    "total_parameters": 14847044,
+    "trainable_parameters": 132356,
+    "non_trainable_parameters": 14714688,
+    "training_time_seconds": 23358.434406995773,
+    "training_time_minutes": 389.30724011659623,
+    "best_validation_accuracy": 0.9341917037963867,
+    "best_validation_loss": 0.21236656606197357,
+    "test_loss": 0.2500707507133484,
+    "test_accuracy": 0.9268408551068884,
+    "test_precision": 0.9271236354561291,
+    "test_recall": 0.9268408551068884,
+    "test_f1": 0.9266172101559126
+}
