@@ -9,11 +9,7 @@ import seaborn as sns
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import ConvNeXtTiny
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import (
-    EarlyStopping,
-    ReduceLROnPlateau,
-    ModelCheckpoint
-)
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 
 from sklearn.metrics import (
     confusion_matrix,
@@ -28,7 +24,9 @@ from sklearn.metrics import (
 # CONFIGURATION
 # ============================================================
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))
+)
 
 TRAIN_DIR = os.path.join(BASE_DIR, "split_dataset", "train")
 VAL_DIR = os.path.join(BASE_DIR, "split_dataset", "validation")
@@ -44,7 +42,7 @@ RESULT_DIR = os.path.join(
     BASE_DIR,
     "deep_learning",
     "results",
-    "convnext"
+    "convnext_248_v2"
 )
 
 CHECKPOINT_DIR = os.path.join(
@@ -56,63 +54,116 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(RESULT_DIR, exist_ok=True)
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-IMG_SIZE = (128, 128)
+
+# ============================================================
+# PROJECT SETTINGS
+# ============================================================
+
+IMG_SIZE = (248, 248)
 BATCH_SIZE = 16
-EPOCHS = 5
+TOTAL_EPOCHS = 10
+
+# Fine-tuning starts after Epoch 5
+FINE_TUNE_START_EPOCH = 5
+
 SEED = 42
 
 
 # ============================================================
-# DATA
+# PRINT CONFIGURATION
+# ============================================================
+
+print("\n================================")
+print("CONVNEXTTINY 248x248 V3")
+print("================================")
+
+print("Image size:", IMG_SIZE)
+print("Batch size:", BATCH_SIZE)
+print("Total epochs:", TOTAL_EPOCHS)
+print("Fine-tuning starts at Epoch 6")
+
+
+# ============================================================
+# DATA AUGMENTATION
 # ============================================================
 
 train_datagen = ImageDataGenerator(
-    rescale=1.0 / 255.0,
+
     rotation_range=15,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
+
+    width_shift_range=0.08,
+
+    height_shift_range=0.08,
+
+    zoom_range=0.10,
+
     horizontal_flip=True
+
 )
 
-test_val_datagen = ImageDataGenerator(
-    rescale=1.0 / 255.0
-)
+val_test_datagen = ImageDataGenerator()
 
+
+# ============================================================
+# DATA GENERATORS
+# ============================================================
 
 train_generator = train_datagen.flow_from_directory(
+
     TRAIN_DIR,
+
     target_size=IMG_SIZE,
+
     batch_size=BATCH_SIZE,
+
     class_mode="categorical",
+
     shuffle=True,
+
     seed=SEED
+
 )
 
 
-validation_generator = test_val_datagen.flow_from_directory(
+validation_generator = val_test_datagen.flow_from_directory(
+
     VAL_DIR,
+
     target_size=IMG_SIZE,
+
     batch_size=BATCH_SIZE,
+
     class_mode="categorical",
+
     shuffle=False
+
 )
 
 
-test_generator = test_val_datagen.flow_from_directory(
+test_generator = val_test_datagen.flow_from_directory(
+
     TEST_DIR,
+
     target_size=IMG_SIZE,
+
     batch_size=BATCH_SIZE,
+
     class_mode="categorical",
+
     shuffle=False
+
 )
 
+
+# ============================================================
+# DATASET INFORMATION
+# ============================================================
 
 NUM_CLASSES = train_generator.num_classes
 
 CLASS_NAMES = list(
     train_generator.class_indices.keys()
 )
-
 
 print("\nClasses:", CLASS_NAMES)
 
@@ -133,72 +184,302 @@ print(
 
 
 # ============================================================
-# BUILD CONVNEXT
+# MODEL PATHS
 # ============================================================
 
-print("\nLoading ConvNeXtTiny ImageNet weights...")
-
-base_model = ConvNeXtTiny(
-    weights="imagenet",
-    include_top=False,
-    input_shape=(128, 128, 3)
+BEST_MODEL_PATH = os.path.join(
+    MODEL_DIR,
+    "convnext_248_v2_best.keras"
 )
 
-base_model.trainable = False
+FINAL_MODEL_PATH = os.path.join(
+    MODEL_DIR,
+    "convnext_248_v2_fish_disease.keras"
+)
 
 
-model = models.Sequential([
+# ============================================================
+# FIND LATEST CHECKPOINT
+# ============================================================
 
-    base_model,
+def find_latest_checkpoint():
 
-    layers.GlobalAveragePooling2D(),
+    checkpoints = []
 
-    layers.Dense(
+    for filename in os.listdir(CHECKPOINT_DIR):
+
+        if (
+            filename.startswith("convnext_248_v2_epoch_")
+            and filename.endswith(".keras")
+        ):
+
+            checkpoints.append(filename)
+
+    if not checkpoints:
+
+        return None, 0
+
+    checkpoints.sort()
+
+    latest = checkpoints[-1]
+
+    path = os.path.join(
+        CHECKPOINT_DIR,
+        latest
+    )
+
+    epoch_string = latest.replace(
+        "convnext_248_v2_epoch_",
+        ""
+    ).replace(
+        ".keras",
+        ""
+    )
+
+    completed_epoch = int(epoch_string)
+
+    return path, completed_epoch
+
+
+# ============================================================
+# BUILD MODEL
+# ============================================================
+
+def build_model():
+
+    print("\nLoading ConvNeXtTiny ImageNet weights...")
+
+    base_model = ConvNeXtTiny(
+
+        weights="imagenet",
+
+        include_top=False,
+
+        include_preprocessing=True,
+
+        input_shape=(248, 248, 3)
+
+    )
+
+    base_model.trainable = False
+
+    inputs = layers.Input(
+        shape=(248, 248, 3)
+    )
+
+    x = base_model(
+        inputs,
+        training=False
+    )
+
+    x = layers.GlobalAveragePooling2D()(x)
+
+    x = layers.Dense(
         128,
         activation="relu"
-    ),
+    )(x)
 
-    layers.Dropout(0.4),
+    x = layers.Dropout(
+        0.30
+    )(x)
 
-    layers.Dense(
+    outputs = layers.Dense(
         NUM_CLASSES,
         activation="softmax"
+    )(x)
+
+    model = models.Model(
+        inputs,
+        outputs
     )
-])
 
-
-model.compile(
-
-    optimizer=tf.keras.optimizers.Adam(
-        learning_rate=0.0001
-    ),
-
-    loss="categorical_crossentropy",
-
-    metrics=["accuracy"]
-)
-
-
-model.summary()
+    return model
 
 
 # ============================================================
-# PARAMETER COUNT
+# COMPILE FROZEN MODEL
+# ============================================================
+
+def compile_frozen_model(model):
+
+    model.compile(
+
+        optimizer=tf.keras.optimizers.Adam(
+            learning_rate=1e-4
+        ),
+
+        loss="categorical_crossentropy",
+
+        metrics=["accuracy"]
+
+    )
+
+
+# ============================================================
+# ENABLE FINE-TUNING
+# ============================================================
+
+def enable_fine_tuning(model):
+
+    print("\n================================")
+    print("ENABLING FINE-TUNING")
+    print("================================")
+
+    base_model = model.layers[1]
+
+    base_model.trainable = True
+
+    # Fine-tune approximately the last 30%
+    fine_tune_from = int(
+        len(base_model.layers) * 0.70
+    )
+
+    for layer in base_model.layers[:fine_tune_from]:
+
+        layer.trainable = False
+
+    for layer in base_model.layers[fine_tune_from:]:
+
+        layer.trainable = True
+
+    print(
+        "Fine-tuning from layer:",
+        fine_tune_from,
+        "of",
+        len(base_model.layers)
+    )
+
+    trainable_count = sum(
+        np.prod(v.shape)
+        for v in model.trainable_weights
+    )
+
+    print(
+        "Fine-tuning trainable parameters:",
+        trainable_count
+    )
+
+    # IMPORTANT:
+    # Recompile AFTER changing trainable layers.
+    model.compile(
+
+        optimizer=tf.keras.optimizers.Adam(
+            learning_rate=1e-5
+        ),
+
+        loss="categorical_crossentropy",
+
+        metrics=["accuracy"]
+
+    )
+
+    return model
+
+
+# ============================================================
+# EPOCH CHECKPOINT CALLBACK
+# ============================================================
+
+class EpochCheckpoint(
+    tf.keras.callbacks.Callback
+):
+
+    def on_epoch_end(
+        self,
+        epoch,
+        logs=None
+    ):
+
+        epoch_number = epoch + 1
+
+        checkpoint_path = os.path.join(
+
+            CHECKPOINT_DIR,
+
+            f"convnext_248_v2_epoch_{epoch_number:02d}.keras"
+
+        )
+
+        self.model.save(
+            checkpoint_path
+        )
+
+        print(
+            f"\nCheckpoint saved: {checkpoint_path}"
+        )
+
+
+# ============================================================
+# CREATE / LOAD MODEL
+# ============================================================
+
+latest_checkpoint, completed_epoch = (
+    find_latest_checkpoint()
+)
+
+
+if latest_checkpoint is not None:
+
+    print("\n================================")
+    print("CHECKPOINT FOUND")
+    print("================================")
+
+    print(
+        "Latest checkpoint:",
+        latest_checkpoint
+    )
+
+    print(
+        "Completed epochs:",
+        completed_epoch
+    )
+
+    print(
+        "Remaining epochs:",
+        TOTAL_EPOCHS - completed_epoch
+    )
+
+    print(
+        "\nLoading checkpoint..."
+    )
+
+    model = tf.keras.models.load_model(
+        latest_checkpoint
+    )
+
+else:
+
+    print("\nNo previous checkpoint found.")
+
+    print(
+        "Starting from Epoch 1."
+    )
+
+    model = build_model()
+
+    compile_frozen_model(model)
+
+
+# ============================================================
+# MODEL INFORMATION
 # ============================================================
 
 total_params = model.count_params()
 
+trainable_params = sum(
 
-trainable_params = int(
-    np.sum([
-        np.prod(v.shape)
-        for v in model.trainable_weights
-    ])
+    np.prod(v.shape)
+
+    for v in model.trainable_weights
+
 )
 
+print("\n================================")
+print("MODEL INFORMATION")
+print("================================")
 
 print(
-    "\nTotal parameters:",
+    "Total parameters:",
     total_params
 )
 
@@ -209,38 +490,35 @@ print(
 
 
 # ============================================================
-# CHECKPOINTS
+# TRAINING
 # ============================================================
 
-checkpoint_path = os.path.join(
-    CHECKPOINT_DIR,
-    "convnext_epoch_{epoch:02d}.keras"
-)
+start_time = time.time()
 
 
-best_model_path = os.path.join(
-    MODEL_DIR,
-    "convnext_fish_disease_best.keras"
-)
+if completed_epoch < FINE_TUNE_START_EPOCH:
 
+    # ========================================================
+    # STAGE 1
+    # FROZEN CONVNEXT
+    # ========================================================
 
-callbacks = [
+    stage1_end = FINE_TUNE_START_EPOCH
 
-    ModelCheckpoint(
+    print("\n================================")
+    print("FROZEN TRAINING")
+    print("================================")
 
-        filepath=checkpoint_path,
+    print(
+        "Training until Epoch:",
+        stage1_end
+    )
 
-        save_weights_only=False,
+    checkpoint_callback = EpochCheckpoint()
 
-        save_freq="epoch",
+    best_checkpoint = ModelCheckpoint(
 
-        verbose=1
-    ),
-
-
-    ModelCheckpoint(
-
-        filepath=best_model_path,
+        BEST_MODEL_PATH,
 
         monitor="val_accuracy",
 
@@ -249,22 +527,10 @@ callbacks = [
         mode="max",
 
         verbose=1
-    ),
 
+    )
 
-    EarlyStopping(
-
-        monitor="val_loss",
-
-        patience=2,
-
-        restore_best_weights=True,
-
-        verbose=1
-    ),
-
-
-    ReduceLROnPlateau(
+    reduce_lr = ReduceLROnPlateau(
 
         monitor="val_loss",
 
@@ -272,193 +538,200 @@ callbacks = [
 
         patience=1,
 
-        min_lr=1e-6,
+        min_lr=1e-7,
 
         verbose=1
+
     )
-]
+
+    model.fit(
+
+        train_generator,
+
+        validation_data=validation_generator,
+
+        initial_epoch=completed_epoch,
+
+        epochs=stage1_end,
+
+        callbacks=[
+
+            checkpoint_callback,
+
+            best_checkpoint,
+
+            reduce_lr
+
+        ]
+
+    )
+
+    completed_epoch = stage1_end
 
 
 # ============================================================
-# TRAINING
+# STAGE 2
+# FINE-TUNING
 # ============================================================
 
-print(
-    "\nStarting ConvNeXtTiny training..."
-)
+if completed_epoch < TOTAL_EPOCHS:
+
+    print("\n================================")
+    print("STARTING FINE-TUNING")
+    print("================================")
+
+    print(
+        "Fine-tuning begins at Epoch 6"
+    )
+
+    # Enable fine-tuning and RECOMPILE
+    model = enable_fine_tuning(model)
+
+    # Save best model during fine-tuning
+    best_checkpoint = ModelCheckpoint(
+
+        BEST_MODEL_PATH,
+
+        monitor="val_accuracy",
+
+        save_best_only=True,
+
+        mode="max",
+
+        verbose=1
+
+    )
+
+    checkpoint_callback = EpochCheckpoint()
+
+    reduce_lr = ReduceLROnPlateau(
+
+        monitor="val_loss",
+
+        factor=0.5,
+
+        patience=1,
+
+        min_lr=1e-7,
+
+        verbose=1
+
+    )
+
+    print("\n================================")
+    print("FINE-TUNING TRAINING")
+    print("================================")
+
+    print(
+        "Starting from Epoch:",
+        completed_epoch + 1
+    )
+
+    print(
+        "Ending at Epoch:",
+        TOTAL_EPOCHS
+    )
+
+    model.fit(
+
+        train_generator,
+
+        validation_data=validation_generator,
+
+        initial_epoch=completed_epoch,
+
+        epochs=TOTAL_EPOCHS,
+
+        callbacks=[
+
+            checkpoint_callback,
+
+            best_checkpoint,
+
+            reduce_lr
+
+        ]
+
+    )
+
+else:
+
+    print(
+        "\nAll 10 epochs are already completed."
+    )
 
 
-start_time = time.time()
+training_time = time.time() - start_time
 
 
-history = model.fit(
+# ============================================================
+# LOAD BEST MODEL
+# ============================================================
 
-    train_generator,
+if os.path.exists(BEST_MODEL_PATH):
 
-    validation_data=validation_generator,
+    print(
+        "\nLoading best validation model..."
+    )
 
-    epochs=EPOCHS,
-
-    callbacks=callbacks
-)
-
-
-training_time = (
-    time.time() - start_time
-)
-
-
-print(
-    "\nTraining completed."
-)
-
-print(
-    "Training time:",
-    training_time,
-    "seconds"
-)
+    model = tf.keras.models.load_model(
+        BEST_MODEL_PATH
+    )
 
 
 # ============================================================
 # SAVE FINAL MODEL
 # ============================================================
 
-final_model_path = os.path.join(
-    MODEL_DIR,
-    "convnext_fish_disease.keras"
-)
-
-
 model.save(
-    final_model_path
+    FINAL_MODEL_PATH
 )
-
 
 print(
     "\nFinal model saved:"
 )
 
 print(
-    final_model_path
+    FINAL_MODEL_PATH
 )
 
 
 # ============================================================
-# ACCURACY GRAPH
+# MODEL SIZE
 # ============================================================
 
-plt.figure(
-    figsize=(8, 6)
+model_size_mb = (
+
+    os.path.getsize(
+        FINAL_MODEL_PATH
+    )
+    /
+    (1024 * 1024)
+
 )
 
-
-plt.plot(
-    history.history["accuracy"],
-    label="Training Accuracy"
+print(
+    "\nFinal model size:",
+    round(model_size_mb, 2),
+    "MB"
 )
-
-
-plt.plot(
-    history.history["val_accuracy"],
-    label="Validation Accuracy"
-)
-
-
-plt.title(
-    "ConvNeXtTiny Training and Validation Accuracy"
-)
-
-plt.xlabel("Epoch")
-
-plt.ylabel("Accuracy")
-
-plt.legend()
-
-plt.grid()
-
-
-plt.savefig(
-
-    os.path.join(
-        RESULT_DIR,
-        "accuracy.png"
-    ),
-
-    dpi=300,
-
-    bbox_inches="tight"
-)
-
-
-plt.close()
-
-
-# ============================================================
-# LOSS GRAPH
-# ============================================================
-
-plt.figure(
-    figsize=(8, 6)
-)
-
-
-plt.plot(
-    history.history["loss"],
-    label="Training Loss"
-)
-
-
-plt.plot(
-    history.history["val_loss"],
-    label="Validation Loss"
-)
-
-
-plt.title(
-    "ConvNeXtTiny Training and Validation Loss"
-)
-
-plt.xlabel("Epoch")
-
-plt.ylabel("Loss")
-
-plt.legend()
-
-plt.grid()
-
-
-plt.savefig(
-
-    os.path.join(
-        RESULT_DIR,
-        "loss.png"
-    ),
-
-    dpi=300,
-
-    bbox_inches="tight"
-)
-
-
-plt.close()
 
 
 # ============================================================
 # TEST EVALUATION
 # ============================================================
 
-print(
-    "\nEvaluating ConvNeXtTiny on test set..."
-)
-
+print("\n================================")
+print("TEST EVALUATION")
+print("================================")
 
 test_loss, test_accuracy = model.evaluate(
 
     test_generator,
 
     verbose=1
-)
 
+)
 
 print(
     "\nTest Accuracy:",
@@ -477,26 +750,24 @@ print(
 
 test_generator.reset()
 
-
 predictions = model.predict(
 
     test_generator,
 
     verbose=1
-)
 
+)
 
 y_pred = np.argmax(
     predictions,
     axis=1
 )
 
-
 y_true = test_generator.classes
 
 
 # ============================================================
-# OVERALL METRICS
+# METRICS
 # ============================================================
 
 precision = precision_score(
@@ -508,8 +779,8 @@ precision = precision_score(
     average="weighted",
 
     zero_division=0
-)
 
+)
 
 recall = recall_score(
 
@@ -520,8 +791,8 @@ recall = recall_score(
     average="weighted",
 
     zero_division=0
-)
 
+)
 
 f1 = f1_score(
 
@@ -532,21 +803,13 @@ f1 = f1_score(
     average="weighted",
 
     zero_division=0
+
 )
 
 
-print(
-    "\n================================"
-)
-
-print(
-    "CONVNEXT OVERALL RESULTS"
-)
-
-print(
-    "================================"
-)
-
+print("\n================================")
+print("CONVNEXTTINY 248x248 RESULTS")
+print("================================")
 
 print(
     "Accuracy :",
@@ -576,7 +839,13 @@ print(
 
 print(
     "Total parameters:",
-    total_params
+    model.count_params()
+)
+
+print(
+    "Model size:",
+    round(model_size_mb, 2),
+    "MB"
 )
 
 
@@ -593,8 +862,8 @@ report = classification_report(
     target_names=CLASS_NAMES,
 
     zero_division=0
-)
 
+)
 
 print(
     "\nClassification Report"
@@ -603,7 +872,6 @@ print(
 print(
     report
 )
-
 
 with open(
 
@@ -628,13 +896,12 @@ cm = confusion_matrix(
     y_true,
 
     y_pred
-)
 
+)
 
 plt.figure(
     figsize=(8, 6)
 )
-
 
 sns.heatmap(
 
@@ -649,11 +916,11 @@ sns.heatmap(
     xticklabels=CLASS_NAMES,
 
     yticklabels=CLASS_NAMES
+
 )
 
-
 plt.title(
-    "ConvNeXtTiny Confusion Matrix"
+    "ConvNeXtTiny 248x248 Confusion Matrix"
 )
 
 plt.xlabel(
@@ -663,7 +930,6 @@ plt.xlabel(
 plt.ylabel(
     "True Label"
 )
-
 
 plt.savefig(
 
@@ -675,14 +941,14 @@ plt.savefig(
     dpi=300,
 
     bbox_inches="tight"
-)
 
+)
 
 plt.close()
 
 
 # ============================================================
-# PER-CLASS ANALYSIS
+# PER-CLASS RESULTS
 # ============================================================
 
 report_dict = classification_report(
@@ -696,8 +962,8 @@ report_dict = classification_report(
     output_dict=True,
 
     zero_division=0
-)
 
+)
 
 per_class_results = {}
 
@@ -717,6 +983,7 @@ for class_name in CLASS_NAMES:
 
         "support":
             report_dict[class_name]["support"]
+
     }
 
 
@@ -738,6 +1005,7 @@ with open(
         file,
 
         indent=4
+
     )
 
 
@@ -747,9 +1015,17 @@ with open(
 
 results = {
 
-    "model": "ConvNeXtTiny",
+    "model":
+        "ConvNeXtTiny",
 
-    "image_size": "128x128",
+    "image_size":
+        "248x248",
+
+    "epochs":
+        TOTAL_EPOCHS,
+
+    "batch_size":
+        BATCH_SIZE,
 
     "test_accuracy":
         float(test_accuracy),
@@ -767,10 +1043,10 @@ results = {
         float(training_time),
 
     "total_parameters":
-        int(total_params),
+        int(model.count_params()),
 
-    "trainable_parameters":
-        int(trainable_params),
+    "model_size_mb":
+        float(model_size_mb),
 
     "classes":
         CLASS_NAMES,
@@ -783,6 +1059,7 @@ results = {
 
     "test_images":
         test_generator.samples
+
 }
 
 
@@ -804,6 +1081,7 @@ with open(
         file,
 
         indent=4
+
     )
 
 
@@ -811,17 +1089,10 @@ with open(
 # COMPLETE
 # ============================================================
 
-print(
-    "\n================================"
-)
-
-print(
-    "CONVNEXT EXPERIMENT COMPLETED"
-)
-
-print(
-    "================================"
-)
+print("\n================================")
+print("CONVNEXTTINY 248x248 V3")
+print("EXPERIMENT COMPLETED")
+print("================================")
 
 print(
     "\nResults saved in:",
