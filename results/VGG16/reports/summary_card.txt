@@ -1,0 +1,44 @@
+=======================================================
+  VGG16 — MODEL SUMMARY CARD
+=======================================================
+
+  Image size       : 224 × 224 × 3
+  Batch size       : 32
+  Epochs completed : 10
+  Learning rate    : 0.0001
+  Total parameters : 14,847,044
+  Training time    : 389.3 minutes
+
+-------------------------------------------------------
+  TEST PERFORMANCE
+-------------------------------------------------------
+  Accuracy         : 92.68%
+  Precision        : 0.9271
+  Recall           : 0.9268
+  F1-Score         : 0.9266
+  Best val acc     : 93.42%
+
+-------------------------------------------------------
+  PER-CLASS F1-SCORE
+-------------------------------------------------------
+  EUS          P=0.9168  R=0.8604  F1=0.8877
+  gill         P=0.9616  R=0.9525  F1=0.9570
+  healthy      P=0.9314  R=0.9451  F1=0.9382
+  red_spot     P=0.8988  R=0.9432  F1=0.9205
+
+-------------------------------------------------------
+  OUTPUT FILES
+-------------------------------------------------------
+  plots/accuracy_curve.png
+  plots/loss_curve.png
+  plots/confusion_matrix.png
+  plots/per_class_bar.png
+  plots/learning_rate_curve.png
+  plots/training_summary.png
+  reports/classification_report.txt
+  reports/per_class_metrics.csv
+  reports/confusion_matrix.csv
+  reports/metrics.json
+  reports/training_history.json
+  reports/summary_card.txt
+=======================================================

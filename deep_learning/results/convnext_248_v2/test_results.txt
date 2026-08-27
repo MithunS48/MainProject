@@ -1,8 +1,0 @@
-ConvNeXtTiny 248x248 Results
-============================
-
-Validation Accuracy: 91.89%
-Test Accuracy: 95.06%
-Precision: 95.07%
-Recall: 95.06%
-F1 Score: 95.06%
