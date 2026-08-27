@@ -1,0 +1,31 @@
+{
+    "model": "MobileNetV2",
+    "classes": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "image_size": [
+        224,
+        224
+    ],
+    "batch_size": 32,
+    "maximum_epochs": 20,
+    "epochs_completed": 35,
+    "learning_rate": 0.0001,
+    "fine_tuning": true,
+    "fine_tuning_layers": 30,
+    "total_parameters": 2587972,
+    "trainable_parameters": 329476,
+    "non_trainable_parameters": 2258496,
+    "training_time_seconds": 6721.977287769318,
+    "training_time_minutes": 112.0329547961553,
+    "best_validation_accuracy": 0.9675727486610413,
+    "best_validation_loss": 0.09233877062797546,
+    "test_loss": 0.10752131044864655,
+    "test_accuracy": 0.9596199524940617,
+    "test_precision": 0.9596187253405188,
+    "test_recall": 0.9596199524940617,
+    "test_f1": 0.9595810902557265
+}

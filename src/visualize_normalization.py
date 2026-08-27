@@ -11,7 +11,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 SAMPLE_IMAGE_PATH = (
-    PROJECT_ROOT / "augmented_dataset" / "EUS" / "augmented_00000.jpg"
+    PROJECT_ROOT / "augmented_dataset" / "EUS" / "augmented_00007.jpg"
 )
 
 IMAGE_SIZE = (224, 224)

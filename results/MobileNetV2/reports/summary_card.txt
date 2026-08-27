@@ -1,0 +1,44 @@
+=======================================================
+  MobileNetV2 — MODEL SUMMARY CARD
+=======================================================
+
+  Image size       : 224 × 224 × 3
+  Batch size       : 32
+  Epochs completed : 35
+  Learning rate    : 0.0001
+  Total parameters : 2,587,972
+  Training time    : 112.0 minutes
+
+-------------------------------------------------------
+  TEST PERFORMANCE
+-------------------------------------------------------
+  Accuracy         : 95.96%
+  Precision        : 0.9596
+  Recall           : 0.9596
+  F1-Score         : 0.9596
+  Best val acc     : 96.76%
+
+-------------------------------------------------------
+  PER-CLASS F1-SCORE
+-------------------------------------------------------
+  EUS          P=0.9457  R=0.9302  F1=0.9379
+  gill         P=0.9737  R=0.9867  F1=0.9802
+  healthy      P=0.9778  R=0.9689  F1=0.9733
+  red_spot     P=0.9402  R=0.9505  F1=0.9454
+
+-------------------------------------------------------
+  OUTPUT FILES
+-------------------------------------------------------
+  plots/accuracy_curve.png
+  plots/loss_curve.png
+  plots/confusion_matrix.png
+  plots/per_class_bar.png
+  plots/learning_rate_curve.png
+  plots/training_summary.png
+  reports/classification_report.txt
+  reports/per_class_metrics.csv
+  reports/confusion_matrix.csv
+  reports/metrics.json
+  reports/training_history.json
+  reports/summary_card.txt
+=======================================================
