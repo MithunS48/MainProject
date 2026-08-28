@@ -18,7 +18,7 @@ from sqlalchemy import desc
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.config import UPLOADS_DIR, MAX_UPLOAD_SIZE_BYTES, ALLOWED_CONTENT_TYPES
-from app.core.inference import run_prediction, ModelNotAvailableError, check_model_availability
+from app.core.inference import run_prediction, ModelNotAvailableError, check_model_availability, run_gradcam
 from app.models.models import User, Prediction
 from app.schemas.schemas import PredictionOut, PaginatedPredictions
 
@@ -50,6 +50,44 @@ def _prediction_to_out(p: Prediction) -> PredictionOut:
 @router.get("/model-status")
 def model_status():
     return check_model_availability()
+
+
+@router.post("/predict/gradcam", tags=["Inference"])
+async def gradcam_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Upload a fish image and get Grad-CAM heatmap images (base64 PNG).
+    Returns heatmap and overlay showing where MobileNetV2 focused.
+    """
+    if file.content_type not in ALLOWED_CONTENT_TYPES:
+        raise HTTPException(status_code=422, detail="Use JPG or PNG.")
+
+    contents = await file.read()
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Empty file.")
+    if len(contents) > MAX_UPLOAD_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File too large. Max 10MB.")
+
+    ext = Path(file.filename or "upload.jpg").suffix.lower() or ".jpg"
+    saved_name = f"gradcam_{uuid.uuid4().hex}{ext}"
+    saved_path = UPLOADS_DIR / saved_name
+    with open(saved_path, "wb") as f:
+        f.write(contents)
+
+    try:
+        result = run_gradcam(str(saved_path))
+    except ModelNotAvailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Grad-CAM error: {e}")
+
+    return {
+        "heatmap_b64"     : result["heatmap_b64"],
+        "overlay_b64"     : result["overlay_b64"],
+        "predicted_class" : result["predicted_class"],
+    }
 
 
 @router.post("/predict", response_model=PredictionOut)

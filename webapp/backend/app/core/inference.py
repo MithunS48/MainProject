@@ -215,3 +215,96 @@ def run_prediction(image_path: str) -> dict:
             "svm_inference": round(t_svm * 1000, 1),
         },
     }
+
+
+# ============================================================
+# GRAD-CAM
+# ============================================================
+
+import base64
+import cv2 as _cv2
+import numpy as _np_gc
+import matplotlib.cm as _cm
+import tensorflow as _tf_gc
+
+
+def run_gradcam(image_path: str) -> dict:
+    """
+    Compute a Grad-CAM heatmap using MobileNetV2's last conv layer.
+
+    Returns:
+        heatmap_b64    : base64 PNG of pure heatmap (jet colormap)
+        overlay_b64    : base64 PNG of heatmap blended on original image
+        predicted_class: class predicted by MobileNetV2
+    """
+    if not MOBILENET_MODEL_PATH.exists():
+        raise ModelNotAvailableError(
+            "MobileNetV2 model not available for Grad-CAM."
+        )
+
+    import predict as _pm
+
+    mob_full = _tf_gc.keras.models.load_model(
+        str(MOBILENET_MODEL_PATH), safe_mode=False
+    )
+    mob_base = mob_full.get_layer("mobilenetv2_1.00_224")
+
+    conv_model = _tf_gc.keras.Model(
+        inputs=mob_base.inputs,
+        outputs=mob_base.get_layer("out_relu").output
+    )
+
+    image_array = _pm.preprocess_image(image_path)
+
+    aug_out = mob_full.get_layer("data_augmentation")(
+        _tf_gc.cast(image_array, _tf_gc.float32), training=False
+    )
+    preprocessed = _tf_gc.keras.applications.mobilenet_v2.preprocess_input(
+        _tf_gc.identity(aug_out)
+    )
+
+    preds      = mob_full(_tf_gc.cast(image_array, _tf_gc.float32), training=False)
+    pred_idx   = int(_tf_gc.argmax(preds[0]).numpy())
+    pred_class = CLASS_NAMES[pred_idx]
+
+    with _tf_gc.GradientTape() as tape:
+        conv_out = conv_model(preprocessed, training=False)
+        tape.watch(conv_out)
+        preds2 = mob_full(_tf_gc.cast(image_array, _tf_gc.float32), training=False)
+        loss   = preds2[:, pred_idx]
+
+    grads = tape.gradient(loss, conv_out)
+
+    if grads is None:
+        with _tf_gc.GradientTape() as tape2:
+            inp = _tf_gc.cast(image_array, _tf_gc.float32)
+            tape2.watch(inp)
+            p = mob_full(inp, training=False)
+            l = p[:, pred_idx]
+        g = tape2.gradient(l, inp)
+        heatmap = _tf_gc.reduce_mean(_tf_gc.abs(g[0]), axis=-1).numpy()
+    else:
+        pooled  = _tf_gc.reduce_mean(grads, axis=(0, 1, 2))
+        heatmap = (conv_out[0] @ pooled[..., _tf_gc.newaxis]).numpy().squeeze()
+
+    heatmap = _np_gc.maximum(heatmap, 0)
+    heatmap = heatmap / (heatmap.max() + 1e-8)
+
+    orig = _cv2.imread(str(image_path))
+    orig = _cv2.cvtColor(orig, _cv2.COLOR_BGR2RGB)
+    orig = _cv2.resize(orig, (224, 224), interpolation=_cv2.INTER_AREA)
+
+    hm_resized = _cv2.resize(heatmap, (224, 224))
+    hm_colored = (_cm.jet(hm_resized)[:, :, :3] * 255).astype(_np_gc.uint8)
+    overlay    = _cv2.addWeighted(orig, 0.55, hm_colored, 0.45, 0)
+
+    def to_b64(arr_rgb):
+        bgr = _cv2.cvtColor(arr_rgb, _cv2.COLOR_RGB2BGR)
+        _, buf = _cv2.imencode(".png", bgr)
+        return base64.b64encode(buf.tobytes()).decode("utf-8")
+
+    return {
+        "heatmap_b64"     : to_b64(hm_colored),
+        "overlay_b64"     : to_b64(overlay),
+        "predicted_class" : pred_class,
+    }

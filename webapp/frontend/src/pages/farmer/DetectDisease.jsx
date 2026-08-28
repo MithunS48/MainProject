@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   UploadCloud, Image as ImageIcon, X, RefreshCcw, ScanLine, Cpu, Layers,
   Sparkles, BrainCircuit, ClipboardCheck, CheckCircle2, AlertTriangle,
-  Fish, Clock, ChevronRight,
+  Fish, Clock, ChevronRight, Eye, EyeOff, Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { predictImage } from "../../api/endpoints";
+import { predictImage, predictGradcam } from "../../api/endpoints";
 import { getDiseaseInfo } from "../../utils/diseaseInfo";
 import { formatDateTime, toImageUrl } from "../../utils/format";
 
@@ -35,6 +35,8 @@ export default function DetectDisease() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
+  const [gradcam, setGradcam] = useState(null);
+  const [gradcamLoading, setGradcamLoading] = useState(false);
   const timers = useRef([]);
 
   const onDrop = useCallback((accepted, rejected) => {
@@ -72,6 +74,24 @@ export default function DetectDisease() {
     setError("");
     setStage(-1);
     setAnalyzing(false);
+    setGradcam(null);
+    setGradcamLoading(false);
+  };
+
+  const handleGradcam = async () => {
+    if (!file) return;
+    setGradcamLoading(true);
+    setGradcam(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await predictGradcam(formData);
+      setGradcam(res.data);
+    } catch (err) {
+      toast.error("Could not generate Grad-CAM. Try again.");
+    } finally {
+      setGradcamLoading(false);
+    }
   };
 
   const runStageAnimation = (timingMs) => {
@@ -227,6 +247,11 @@ export default function DetectDisease() {
         {result && (
           <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <PredictionResult result={result} diseaseInfo={diseaseInfo} onReset={clearAll} preview={preview} />
+            <GradCamPanel
+              onGenerate={handleGradcam}
+              loading={gradcamLoading}
+              data={gradcam}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -234,8 +259,7 @@ export default function DetectDisease() {
   );
 }
 
-function PipelineAnimation({ currentStage }) {
-  return (
+function PipelineAnimation({ currentStage }) {  return (
     <div>
       <h3 className="font-display font-semibold text-slate-900 text-lg mb-4 flex items-center gap-2">
         <Fish className="w-5 h-5 text-ocean-500 animate-pulse" /> Analyzing your fish...

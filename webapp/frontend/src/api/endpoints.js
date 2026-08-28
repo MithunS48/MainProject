@@ -17,6 +17,10 @@ export const predictImage = (formData, onUploadProgress) =>
     headers: { "Content-Type": "multipart/form-data" },
     onUploadProgress,
   });
+export const predictGradcam = (formData) =>
+  client.post("/predict/gradcam", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 export const getMyPredictions = (params) => client.get("/predictions", { params });
 export const getPredictionDetail = (id) => client.get(`/predictions/${id}`);
 
