@@ -1,6 +1,7 @@
 """
 fusion_experiments.py
 ----------------------
+<<<<<<< HEAD
 Runs all 3 fusion combinations using extracted features:
   1. VGG16 alone
   2. MobileNetV2 alone
@@ -15,6 +16,19 @@ Results saved to results/fusion/:
   fusion_comparison.png
   <combination>/confusion_matrix.png
   <combination>/classification_report.txt
+=======
+Runs all 7 fusion combinations using extracted features:
+  1. VGG16 alone
+  2. MobileNetV2 alone
+  3. ConvNeXt alone
+  4. VGG16 + MobileNetV2
+  5. VGG16 + ConvNeXt
+  6. MobileNetV2 + ConvNeXt
+  7. VGG16 + MobileNetV2 + ConvNeXt
+
+Each combination uses LinearSVC with StandardScaler.
+Results saved to results/fusion/.
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 """
 
 import json
@@ -51,7 +65,11 @@ CLASS_LABELS = ["EUS", "Gill\nDisease", "Healthy", "Red Spot\nDisease"]
 NUM_CLASSES  = len(CLASS_NAMES)
 
 print("=" * 65)
+<<<<<<< HEAD
 print("PHASE 3 — FUSION EXPERIMENTS")
+=======
+print("PHASE 3 — FUSION EXPERIMENTS (7 combinations)")
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 print("=" * 65)
 
 
@@ -73,10 +91,18 @@ mob_train,  _ = load_npz(FEATURE_DIR / "mobilenet_train.npz")
 mob_val,    _ = load_npz(FEATURE_DIR / "mobilenet_validation.npz")
 mob_test,   _ = load_npz(FEATURE_DIR / "mobilenet_test.npz")
 
+<<<<<<< HEAD
+=======
+cx_train,   _ = load_npz(FEATURE_DIR / "convnext_train.npz")
+cx_val,     _ = load_npz(FEATURE_DIR / "convnext_validation.npz")
+cx_test,    _ = load_npz(FEATURE_DIR / "convnext_test.npz")
+
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 fused_train, _ = load_npz(FEATURE_DIR / "fused_train.npz")
 fused_val,   _ = load_npz(FEATURE_DIR / "fused_validation.npz")
 fused_test,  _ = load_npz(FEATURE_DIR / "fused_test.npz")
 
+<<<<<<< HEAD
 # Combine train+val for fitting the classifier
 # (test stays completely separate)
 vgg16_trainval  = np.concatenate([vgg16_train, vgg16_val], axis=0)
@@ -95,10 +121,31 @@ print(f"  Fused       : {fused_train.shape[1]}")
 
 # ============================================================
 # DEFINE COMBINATIONS
+=======
+fused_all_train, _ = load_npz(FEATURE_DIR / "fused_all_train.npz")
+fused_all_val,   _ = load_npz(FEATURE_DIR / "fused_all_validation.npz")
+fused_all_test,  _ = load_npz(FEATURE_DIR / "fused_all_test.npz")
+
+# Combine train+val for SVM fitting
+y_trainval = np.concatenate([y_train, y_val], axis=0)
+
+def tv(a, b):
+    return np.concatenate([a, b], axis=0)
+
+print(f"  Train+Val : {len(y_trainval)}  |  Test : {len(y_test)}")
+print(f"  VGG16 dim : {vgg16_train.shape[1]}")
+print(f"  Mobile dim: {mob_train.shape[1]}")
+print(f"  ConvNeXt  : {cx_train.shape[1]}")
+
+
+# ============================================================
+# DEFINE ALL 7 COMBINATIONS
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 # ============================================================
 
 COMBINATIONS = {
     "VGG16": {
+<<<<<<< HEAD
         "X_trainval" : vgg16_trainval,
         "X_test"     : vgg16_test,
         "feature_dim": vgg16_train.shape[1],
@@ -115,6 +162,50 @@ COMBINATIONS = {
         "X_test"     : fused_test,
         "feature_dim": fused_train.shape[1],
         "color"      : "#8e44ad",
+=======
+        "X_tv"  : tv(vgg16_train, vgg16_val),
+        "X_test": vgg16_test,
+        "dim"   : vgg16_train.shape[1],
+        "color" : "#e74c3c",
+    },
+    "MobileNetV2": {
+        "X_tv"  : tv(mob_train, mob_val),
+        "X_test": mob_test,
+        "dim"   : mob_train.shape[1],
+        "color" : "#2980b9",
+    },
+    "ConvNeXt": {
+        "X_tv"  : tv(cx_train, cx_val),
+        "X_test": cx_test,
+        "dim"   : cx_train.shape[1],
+        "color" : "#27ae60",
+    },
+    "VGG16+MobileNetV2": {
+        "X_tv"  : tv(fused_train, fused_val),
+        "X_test": fused_test,
+        "dim"   : fused_train.shape[1],
+        "color" : "#8e44ad",
+    },
+    "VGG16+ConvNeXt": {
+        "X_tv"  : tv(np.concatenate([vgg16_train, cx_train], axis=1),
+                     np.concatenate([vgg16_val,   cx_val],   axis=1)),
+        "X_test": np.concatenate([vgg16_test, cx_test], axis=1),
+        "dim"   : vgg16_train.shape[1] + cx_train.shape[1],
+        "color" : "#e67e22",
+    },
+    "MobileNetV2+ConvNeXt": {
+        "X_tv"  : tv(np.concatenate([mob_train, cx_train], axis=1),
+                     np.concatenate([mob_val,   cx_val],   axis=1)),
+        "X_test": np.concatenate([mob_test, cx_test], axis=1),
+        "dim"   : mob_train.shape[1] + cx_train.shape[1],
+        "color" : "#16a085",
+    },
+    "VGG16+MobileNetV2+ConvNeXt": {
+        "X_tv"  : tv(fused_all_train, fused_all_val),
+        "X_test": fused_all_test,
+        "dim"   : fused_all_train.shape[1],
+        "color" : "#2c3e50",
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
     },
 }
 
@@ -130,11 +221,16 @@ for combo_name, cfg in COMBINATIONS.items():
     print(f"\n{'='*65}")
     print(f"COMBINATION: {combo_name}")
     print(f"{'='*65}")
+<<<<<<< HEAD
     print(f"  Feature dim : {cfg['feature_dim']}")
+=======
+    print(f"  Feature dim : {cfg['dim']}")
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 
     combo_dir = FUSION_DIR / combo_name.replace("+", "_plus_")
     combo_dir.mkdir(parents=True, exist_ok=True)
 
+<<<<<<< HEAD
     # Pipeline: StandardScaler + LinearSVC
     clf = Pipeline([
         ("scaler", StandardScaler()),
@@ -153,6 +249,19 @@ for combo_name, cfg in COMBINATIONS.items():
     print(f"  Training time : {train_time:.2f}s")
 
     # Predict
+=======
+    clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm",    LinearSVC(C=1.0, max_iter=5000, random_state=42, dual="auto"))
+    ])
+
+    print(f"  Training LinearSVC...")
+    t0 = time.time()
+    clf.fit(cfg["X_tv"], y_trainval)
+    train_time = time.time() - t0
+    print(f"  Training time : {train_time:.2f}s")
+
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
     y_pred = clf.predict(cfg["X_test"])
 
     # Metrics
@@ -218,7 +327,11 @@ for combo_name, cfg in COMBINATIONS.items():
     # Store results
     results.append({
         "Combination"    : combo_name,
+<<<<<<< HEAD
         "Feature_Dim"    : cfg["feature_dim"],
+=======
+        "Feature_Dim"    : cfg["dim"],
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
         "Accuracy"       : round(accuracy,  4),
         "Precision"      : round(precision, 4),
         "Recall"         : round(recall,    4),
@@ -228,7 +341,11 @@ for combo_name, cfg in COMBINATIONS.items():
         "Gill_F1"        : round(report_dict["gill"]["f1-score"],     4),
         "Healthy_F1"     : round(report_dict["healthy"]["f1-score"],  4),
         "RedSpot_F1"     : round(report_dict["red_spot"]["f1-score"], 4),
+<<<<<<< HEAD
         "y_pred"         : y_pred,  # kept for plotting, dropped before CSV
+=======
+        "y_pred"         : y_pred,
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
         "color"          : cfg["color"],
         "cm"             : cm,
     })
@@ -258,13 +375,20 @@ print("\nGenerating comparison chart...")
 combo_names = [r["Combination"] for r in results]
 colors      = [r["color"]       for r in results]
 
+<<<<<<< HEAD
 fig = plt.figure(figsize=(18, 12))
 fig.suptitle(
     "Phase 3 — Fusion Experiments: Feature Combination Comparison\n"
+=======
+fig, axes = plt.subplots(1, 2, figsize=(18, 7))
+fig.suptitle(
+    "Phase 3 — All 7 Fusion Combinations\n"
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
     "Classifier: LinearSVC  |  Features: GAP after pretrained CNN",
     fontsize=14, fontweight="bold"
 )
 
+<<<<<<< HEAD
 gs = gridspec.GridSpec(2, 3, figure=fig, hspace=0.45, wspace=0.35)
 
 # --- Panel 1: Overall metrics bar ---
@@ -307,10 +431,41 @@ for bar in bars:
              color="white", fontsize=11, fontweight="bold")
 ax2.set_xlim(80, 102)
 ax2.set_title("Test Accuracy (%)", fontweight="bold")
+=======
+# --- Panel 1: Accuracy bar ---
+ax1 = axes[0]
+acc_vals = [r["Accuracy"] * 100 for r in results]
+bars = ax1.barh(combo_names, acc_vals, color=colors, alpha=0.85, edgecolor="white")
+for bar in bars:
+    ax1.text(bar.get_width() - 0.3,
+             bar.get_y() + bar.get_height()/2,
+             f"{bar.get_width():.2f}%",
+             ha="right", va="center",
+             color="white", fontsize=10, fontweight="bold")
+ax1.set_xlim(80, 103)
+ax1.set_title("Test Accuracy (%)", fontweight="bold")
+ax1.grid(axis="x", linestyle="--", alpha=0.4)
+ax1.spines["top"].set_visible(False)
+ax1.spines["right"].set_visible(False)
+
+# --- Panel 2: F1 bar ---
+ax2 = axes[1]
+f1_vals = [r["F1_Score"] for r in results]
+bars2 = ax2.barh(combo_names, f1_vals, color=colors, alpha=0.85, edgecolor="white")
+for bar in bars2:
+    ax2.text(bar.get_width() - 0.003,
+             bar.get_y() + bar.get_height()/2,
+             f"{bar.get_width():.4f}",
+             ha="right", va="center",
+             color="white", fontsize=10, fontweight="bold")
+ax2.set_xlim(0.80, 1.03)
+ax2.set_title("F1-Score (weighted)", fontweight="bold")
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 ax2.grid(axis="x", linestyle="--", alpha=0.4)
 ax2.spines["top"].set_visible(False)
 ax2.spines["right"].set_visible(False)
 
+<<<<<<< HEAD
 # --- Panels 3,4,5: Per-class F1 per combination ---
 per_class_keys = ["EUS_F1", "Gill_F1", "Healthy_F1", "RedSpot_F1"]
 per_class_labels = ["EUS", "Gill", "Healthy", "Red Spot"]
@@ -334,6 +489,8 @@ for idx, result in enumerate(results):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
+=======
+>>>>>>> bea697917103835bf2ea40c5c3574d2a34c6e35c
 plt.tight_layout()
 chart_path = FUSION_DIR / "fusion_comparison.png"
 plt.savefig(str(chart_path), dpi=300, bbox_inches="tight")
