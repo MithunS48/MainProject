@@ -1,0 +1,10 @@
+              precision    recall  f1-score   support
+
+         EUS     0.9571    0.9610    0.9590       487
+        gill     0.9886    0.9905    0.9896       526
+     healthy     0.9890    0.9853    0.9872       546
+    red_spot     0.9706    0.9689    0.9698       546
+
+    accuracy                         0.9767      2105
+   macro avg     0.9763    0.9764    0.9764      2105
+weighted avg     0.9767    0.9767    0.9767      2105

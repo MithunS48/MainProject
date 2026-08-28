@@ -21,6 +21,9 @@ venv/
 Thumbs.db
 
 node_modules/
-# Deep learning trained models and checkpoints
-deep_learning/models/*.keras
-deep_learning/results/*/checkpoints/
+
+# All trained models and generated features
+results/VGG16/model/
+results/MobileNetV2/model/
+results/ConvNeXt/model/
+results/features/

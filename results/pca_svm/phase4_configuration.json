@@ -1,0 +1,58 @@
+{
+    "phase": "Phase 4",
+    "svm_kernel": "Linear",
+    "svm_C": 1.0,
+    "pca_variance": 0.95,
+    "random_state": 42,
+    "classes": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "feature_files": {
+        "VGG16": {
+            "train": "vgg16_train.npz",
+            "validation": "vgg16_validation.npz",
+            "test": "vgg16_test.npz"
+        },
+        "MobileNetV2": {
+            "train": "mobilenet_train.npz",
+            "validation": "mobilenet_validation.npz",
+            "test": "mobilenet_test.npz"
+        },
+        "ConvNeXt": {
+            "train": "convnext_train.npz",
+            "validation": "convnext_validation.npz",
+            "test": "convnext_test.npz"
+        }
+    },
+    "feature_configurations": {
+        "VGG16": [
+            "VGG16"
+        ],
+        "MobileNetV2": [
+            "MobileNetV2"
+        ],
+        "ConvNeXt": [
+            "ConvNeXt"
+        ],
+        "VGG16_plus_MobileNetV2": [
+            "VGG16",
+            "MobileNetV2"
+        ],
+        "VGG16_plus_ConvNeXt": [
+            "VGG16",
+            "ConvNeXt"
+        ],
+        "MobileNetV2_plus_ConvNeXt": [
+            "MobileNetV2",
+            "ConvNeXt"
+        ],
+        "VGG16_plus_MobileNetV2_plus_ConvNeXt": [
+            "VGG16",
+            "MobileNetV2",
+            "ConvNeXt"
+        ]
+    }
+}

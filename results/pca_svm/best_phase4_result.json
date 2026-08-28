@@ -1,0 +1,14 @@
+{
+    "Combination": "MobileNetV2_plus_ConvNeXt",
+    "Experiment": "NO_PCA",
+    "Original_Feature_Dim": 2048,
+    "PCA_Feature_Dim": 2048,
+    "Variance_Retained_%": 100.0,
+    "Accuracy": 0.9795724465558194,
+    "Precision": 0.9795741678316714,
+    "Recall": 0.9795724465558194,
+    "F1_Score": 0.9795675302836682,
+    "Training_Time_s": 16.590201139450073,
+    "PCA_Time_s": 0.0,
+    "Total_Time_s": 16.590201139450073
+}

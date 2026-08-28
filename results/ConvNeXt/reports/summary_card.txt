@@ -1,0 +1,44 @@
+=======================================================
+  ConvNeXt — MODEL SUMMARY CARD
+=======================================================
+
+  Image size       : 224 × 224 × 3
+  Batch size       : 32
+  Epochs completed : 11
+  Learning rate    : 0.0001
+  Total parameters : N/A
+  Training time    : 0.0 minutes
+
+-------------------------------------------------------
+  TEST PERFORMANCE
+-------------------------------------------------------
+  Accuracy         : 90.88%
+  Precision        : 0.9156
+  Recall           : 0.9088
+  F1-Score         : 0.9100
+  Best val acc     : 0.00%
+
+-------------------------------------------------------
+  PER-CLASS F1-SCORE
+-------------------------------------------------------
+  EUS          P=0.7955  R=0.9343  F1=0.8593
+  gill         P=0.9762  R=0.9373  F1=0.9564
+  healthy      P=0.9190  R=0.9139  F1=0.9164
+  red_spot     P=0.9608  R=0.8535  F1=0.9040
+
+-------------------------------------------------------
+  OUTPUT FILES
+-------------------------------------------------------
+  plots/accuracy_curve.png
+  plots/loss_curve.png
+  plots/confusion_matrix.png
+  plots/per_class_bar.png
+  plots/learning_rate_curve.png
+  plots/training_summary.png
+  reports/classification_report.txt
+  reports/per_class_metrics.csv
+  reports/confusion_matrix.csv
+  reports/metrics.json
+  reports/training_history.json
+  reports/summary_card.txt
+=======================================================
