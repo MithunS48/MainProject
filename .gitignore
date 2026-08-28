@@ -22,9 +22,8 @@ Thumbs.db
 
 node_modules/
 
-# Extracted weights folder
-results/**/extracted/
-
-# ConvNeXt features
-results/features/convnext_*.npz
-results/features/fused_all_*.npz
+# All trained models and generated features
+results/VGG16/model/
+results/MobileNetV2/model/
+results/ConvNeXt/model/
+results/features/
