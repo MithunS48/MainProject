@@ -75,13 +75,13 @@ export default function UserManagement() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">User Management</h1>
-        <p className="text-white/60 mt-1">View, search, activate/deactivate, and manage all registered accounts.</p>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">User Management</h1>
+        <p className="text-slate-500 mt-1">View, search, activate/deactivate, and manage all registered accounts.</p>
       </motion.div>
 
       <div className="glass-card rounded-2xl p-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             value={search}
             onChange={(e) => {
@@ -108,59 +108,59 @@ export default function UserManagement() {
 
       <div className="glass-card rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="text-center py-16 text-white/40 text-sm">Loading users...</div>
+          <div className="text-center py-16 text-slate-400 text-sm">Loading users...</div>
         ) : items.length === 0 ? (
           <div className="text-center py-16">
-            <Users className="w-10 h-10 text-white/20 mx-auto mb-3" />
-            <p className="text-white/50 text-sm">No users match your filters.</p>
+            <Users className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-500 text-sm">No users match your filters.</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10 text-left">
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Name</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden sm:table-cell">Email</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Role</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Joined</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Analyses</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Status</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide"></th>
+              <tr className="border-b border-slate-200 text-left">
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Name</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide hidden sm:table-cell">Email</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Role</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide hidden md:table-cell">Joined</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide hidden lg:table-cell">Analyses</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Status</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide"></th>
               </tr>
             </thead>
             <tbody>
               {items.map((u) => (
-                <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ocean-400 to-seaweed-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
                         {u.full_name?.[0]?.toUpperCase()}
                       </div>
-                      <span className="text-sm font-medium text-white">{u.full_name}</span>
+                      <span className="text-sm font-medium text-slate-900">{u.full_name}</span>
                     </div>
                   </td>
-                  <td className="px-5 py-3 text-sm text-white/50 hidden sm:table-cell">{u.email}</td>
+                  <td className="px-5 py-3 text-sm text-slate-500 hidden sm:table-cell">{u.email}</td>
                   <td className="px-5 py-3">
                     <span
                       className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
                         u.role === "admin"
-                          ? "bg-coral-500/15 text-coral-300"
-                          : "bg-ocean-500/15 text-ocean-300"
+                          ? "bg-coral-50 text-coral-600"
+                          : "bg-ocean-50 text-ocean-600"
                       }`}
                     >
                       {u.role === "admin" ? <ShieldCheck className="w-3 h-3" /> : <Sprout className="w-3 h-3" />}
                       {u.role === "admin" ? "Admin" : "Farmer"}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-sm text-white/50 hidden md:table-cell">{formatDate(u.created_at)}</td>
-                  <td className="px-5 py-3 text-sm text-white/50 hidden lg:table-cell">{u.analyses_count}</td>
+                  <td className="px-5 py-3 text-sm text-slate-500 hidden md:table-cell">{formatDate(u.created_at)}</td>
+                  <td className="px-5 py-3 text-sm text-slate-500 hidden lg:table-cell">{u.analyses_count}</td>
                   <td className="px-5 py-3">
                     <button onClick={() => handleToggleActive(u)} className="flex items-center gap-1.5">
                       {u.is_active ? (
-                        <ToggleRight className="w-6 h-6 text-seaweed-400" />
+                        <ToggleRight className="w-6 h-6 text-seaweed-500" />
                       ) : (
-                        <ToggleLeft className="w-6 h-6 text-white/30" />
+                        <ToggleLeft className="w-6 h-6 text-slate-300" />
                       )}
-                      <span className={`text-xs font-medium ${u.is_active ? "text-seaweed-400" : "text-white/40"}`}>
+                      <span className={`text-xs font-medium ${u.is_active ? "text-seaweed-600" : "text-slate-400"}`}>
                         {u.is_active ? "Active" : "Inactive"}
                       </span>
                     </button>
@@ -168,7 +168,7 @@ export default function UserManagement() {
                   <td className="px-5 py-3 text-right">
                     <button
                       onClick={() => setConfirmDelete(u)}
-                      className="text-coral-400 hover:text-coral-300"
+                      className="text-coral-500 hover:text-coral-600"
                       disabled={u.id === me?.id}
                       title={u.id === me?.id ? "You cannot delete your own account" : "Delete user"}
                     >
@@ -184,7 +184,7 @@ export default function UserManagement() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/40">
+          <span className="text-sm text-slate-400">
             Page {page} of {totalPages} &bull; {total} users
           </span>
           <div className="flex gap-2">
@@ -215,13 +215,13 @@ export default function UserManagement() {
               className="glass-card rounded-2xl p-6 max-w-sm w-full"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-coral-500/20 flex items-center justify-center shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-coral-400" />
+                <div className="w-10 h-10 rounded-xl bg-coral-100 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-coral-500" />
                 </div>
-                <h3 className="font-display font-semibold text-white">Delete User?</h3>
+                <h3 className="font-display font-semibold text-slate-900">Delete User?</h3>
               </div>
-              <p className="text-sm text-white/60 mb-6">
-                This will permanently delete <strong className="text-white">{confirmDelete.full_name}</strong> and
+              <p className="text-sm text-slate-500 mb-6">
+                This will permanently delete <strong className="text-slate-800">{confirmDelete.full_name}</strong> and
                 all of their prediction history. This action cannot be undone.
               </p>
               <div className="flex gap-3">

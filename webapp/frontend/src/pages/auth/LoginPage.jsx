@@ -33,8 +33,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-5 py-16">
-      <OceanBackground fishCount={3} bubbleCount={16} />
+    <div className="min-h-screen relative flex items-center justify-center px-5 py-16 bg-white">
+      <OceanBackground fishCount={3} bubbleCount={14} />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -46,10 +46,10 @@ export default function LoginPage() {
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-ocean-400 to-seaweed-500 flex items-center justify-center shadow-glow-ocean">
               <Fish className="w-6 h-6 text-white" />
             </div>
-            <span className="font-display font-bold text-xl text-white">AquaScan</span>
+            <span className="font-display font-bold text-xl text-slate-900">AquaScan</span>
           </Link>
-          <h1 className="font-display text-2xl font-bold text-white">Welcome Back</h1>
-          <p className="text-white/60 text-sm mt-1">Log in to check on your fish stock</p>
+          <h1 className="font-display text-2xl font-bold text-slate-900">Welcome Back</h1>
+          <p className="text-slate-500 text-sm mt-1">Log in to check on your fish stock</p>
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card rounded-3xl p-8 space-y-5 shadow-glass">
@@ -57,16 +57,16 @@ export default function LoginPage() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="bg-coral-500/15 border border-coral-500/30 text-coral-300 text-sm rounded-xl px-4 py-3"
+              className="bg-coral-50 border border-coral-200 text-coral-600 text-sm rounded-xl px-4 py-3"
             >
               {error}
             </motion.div>
           )}
 
           <div>
-            <label className="text-sm font-medium text-white/70 mb-1.5 block">Email</label>
+            <label className="text-sm font-medium text-slate-600 mb-1.5 block">Email</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="email"
                 required
@@ -79,9 +79,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-white/70 mb-1.5 block">Password</label>
+            <label className="text-sm font-medium text-slate-600 mb-1.5 block">Password</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type={showPassword ? "text" : "password"}
                 required
@@ -93,7 +93,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -110,16 +110,16 @@ export default function LoginPage() {
             )}
           </button>
 
-          <p className="text-center text-sm text-white/50">
+          <p className="text-center text-sm text-slate-500">
             Don&apos;t have an account?{" "}
-            <Link to="/register" className="text-ocean-300 font-semibold hover:text-ocean-200">
+            <Link to="/register" className="text-ocean-600 font-semibold hover:text-ocean-700">
               Create one <ArrowRight className="w-3 h-3 inline" />
             </Link>
           </p>
         </form>
 
-        <div className="mt-6 text-center text-xs text-white/40 glass-card rounded-xl p-3">
-          Demo admin account: <span className="text-white/60">admin@aquascan.ai</span> / <span className="text-white/60">Admin@123</span>
+        <div className="mt-6 text-center text-xs text-slate-500 glass-card rounded-xl p-3">
+          Demo admin account: <span className="text-slate-700 font-medium">admin@aquascan.ai</span> / <span className="text-slate-700 font-medium">Admin@123</span>
         </div>
       </motion.div>
     </div>

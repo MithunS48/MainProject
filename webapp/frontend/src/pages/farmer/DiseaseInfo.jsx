@@ -5,24 +5,24 @@ import { DISEASE_ORDER, getDiseaseInfo } from "../../utils/diseaseInfo";
 
 const colorMap = {
   coral: {
-    bg: "from-coral-500/15 to-coral-600/5 border-coral-500/25",
-    text: "text-coral-300",
-    icon: "bg-coral-500/20 text-coral-400",
+    bg: "from-coral-50 to-white border-coral-100",
+    text: "text-coral-600",
+    icon: "bg-coral-100 text-coral-500",
   },
   seaweed: {
-    bg: "from-seaweed-500/15 to-seaweed-600/5 border-seaweed-500/25",
-    text: "text-seaweed-300",
-    icon: "bg-seaweed-500/20 text-seaweed-400",
+    bg: "from-seaweed-50 to-white border-seaweed-100",
+    text: "text-seaweed-600",
+    icon: "bg-seaweed-100 text-seaweed-600",
   },
   sand: {
-    bg: "from-sand-400/15 to-sand-500/5 border-sand-400/25",
-    text: "text-sand-300",
-    icon: "bg-sand-400/20 text-sand-400",
+    bg: "from-sand-50 to-white border-sand-100",
+    text: "text-sand-600",
+    icon: "bg-sand-100 text-sand-600",
   },
   ocean: {
-    bg: "from-ocean-500/15 to-ocean-600/5 border-ocean-500/25",
-    text: "text-ocean-300",
-    icon: "bg-ocean-500/20 text-ocean-400",
+    bg: "from-ocean-50 to-white border-ocean-100",
+    text: "text-ocean-600",
+    icon: "bg-ocean-100 text-ocean-600",
   },
 };
 
@@ -32,17 +32,17 @@ export default function DiseaseInfo() {
   return (
     <div className="space-y-6 max-w-4xl">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">Disease Information</h1>
-        <p className="text-white/60 mt-1">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">Disease Information</h1>
+        <p className="text-slate-500 mt-1">
           Learn about the four fish health categories AquaScan can identify — symptoms, prevention, and
           management guidance.
         </p>
       </motion.div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 flex items-start gap-3 text-sm text-white/60">
-        <ShieldCheck className="w-5 h-5 text-ocean-300 shrink-0 mt-0.5" />
+      <div className="bg-ocean-50 border border-ocean-100 rounded-xl px-4 py-3.5 flex items-start gap-3 text-sm text-slate-600">
+        <ShieldCheck className="w-5 h-5 text-ocean-500 shrink-0 mt-0.5" />
         <p>
-          <strong className="text-white/80">Important:</strong> This information is AI-assisted and
+          <strong className="text-slate-800">Important:</strong> This information is AI-assisted and
           educational in nature. It does not constitute a certified veterinary diagnosis. Always consult
           a qualified aquaculture or veterinary professional for confirmed diagnosis and treatment.
         </p>
@@ -69,11 +69,11 @@ export default function DiseaseInfo() {
                   {d.isHealthy ? <Sprout className="w-5 h-5" /> : <Fish className="w-5 h-5" />}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display font-semibold text-white">{d.name}</h3>
-                  <p className="text-sm text-white/50 mt-0.5 line-clamp-1">{d.summary}</p>
+                  <h3 className="font-display font-semibold text-slate-900">{d.name}</h3>
+                  <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{d.summary}</p>
                 </div>
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                  <ChevronDown className="w-5 h-5 text-white/40" />
+                  <ChevronDown className="w-5 h-5 text-slate-400" />
                 </motion.div>
               </button>
 
@@ -86,7 +86,7 @@ export default function DiseaseInfo() {
                     transition={{ duration: 0.25 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-5 pb-6 pt-1 grid sm:grid-cols-3 gap-5 border-t border-white/10">
+                    <div className="px-5 pb-6 pt-1 grid sm:grid-cols-3 gap-5 border-t border-slate-100">
                       <InfoColumn
                         icon={Stethoscope}
                         title="Symptoms"
@@ -115,7 +115,7 @@ function InfoColumn({ icon: Icon, title, items, accent }) {
       </h4>
       <ul className="space-y-1.5">
         {items?.map((item) => (
-          <li key={item} className="text-sm text-white/60 leading-relaxed">
+          <li key={item} className="text-sm text-slate-500 leading-relaxed">
             • {item}
           </li>
         ))}

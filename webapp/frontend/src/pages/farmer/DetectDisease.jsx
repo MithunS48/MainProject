@@ -129,8 +129,8 @@ export default function DetectDisease() {
   return (
     <div className="max-w-5xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">Detect Fish Disease</h1>
-        <p className="text-white/60 mt-1">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">Detect Fish Disease</h1>
+        <p className="text-slate-500 mt-1">
           Upload a clear photo of the fish. Our AI pipeline (MobileNetV2 + ConvNeXt + Polynomial SVM)
           will analyze it and return an instant diagnosis.
         </p>
@@ -144,7 +144,7 @@ export default function DetectDisease() {
               <div
                 {...getRootProps()}
                 className={`glass-card rounded-3xl border-2 border-dashed transition-all p-10 sm:p-16 text-center cursor-pointer ${
-                  isDragActive ? "border-ocean-400 bg-ocean-400/5 scale-[1.01]" : "border-white/15 hover:border-ocean-400/50"
+                  isDragActive ? "border-ocean-400 bg-ocean-50 scale-[1.01]" : "border-slate-200 hover:border-ocean-400/50"
                 }`}
               >
                 <input {...getInputProps()} />
@@ -155,10 +155,10 @@ export default function DetectDisease() {
                 >
                   <UploadCloud className="w-8 h-8 text-white" />
                 </motion.div>
-                <h3 className="font-display text-lg font-semibold text-white mb-1.5">
+                <h3 className="font-display text-lg font-semibold text-slate-900 mb-1.5">
                   {isDragActive ? "Drop the image here" : "Drag & drop a fish image"}
                 </h3>
-                <p className="text-white/50 text-sm mb-5">or click to browse — JPG / PNG, up to 10MB</p>
+                <p className="text-slate-500 text-sm mb-5">or click to browse — JPG / PNG, up to 10MB</p>
                 <span className="btn-secondary inline-flex">
                   <ImageIcon className="w-4 h-4" /> Browse Files
                 </span>
@@ -190,8 +190,8 @@ export default function DetectDisease() {
                   <div className="flex-1 w-full">
                     {!analyzing ? (
                       <>
-                        <h3 className="font-display font-semibold text-white text-lg mb-1">Ready to Analyze</h3>
-                        <p className="text-white/50 text-sm mb-5 truncate">{file?.name}</p>
+                        <h3 className="font-display font-semibold text-slate-900 text-lg mb-1">Ready to Analyze</h3>
+                        <p className="text-slate-500 text-sm mb-5 truncate">{file?.name}</p>
                         <div className="flex flex-wrap gap-3">
                           <button onClick={handleAnalyze} className="btn-primary">
                             <ScanLine className="w-4 h-4" /> Analyze Fish
@@ -216,7 +216,7 @@ export default function DetectDisease() {
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-coral-500/15 border border-coral-500/30 text-coral-300 text-sm rounded-xl px-4 py-3 flex items-center gap-2"
+                className="bg-coral-50 border border-coral-200 text-coral-600 text-sm rounded-xl px-4 py-3 flex items-center gap-2"
               >
                 <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
               </motion.div>
@@ -237,8 +237,8 @@ export default function DetectDisease() {
 function PipelineAnimation({ currentStage }) {
   return (
     <div>
-      <h3 className="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2">
-        <Fish className="w-5 h-5 text-ocean-300 animate-pulse" /> Analyzing your fish...
+      <h3 className="font-display font-semibold text-slate-900 text-lg mb-4 flex items-center gap-2">
+        <Fish className="w-5 h-5 text-ocean-500 animate-pulse" /> Analyzing your fish...
       </h3>
       <div className="space-y-3">
         {STAGES.map((s, i) => {
@@ -251,16 +251,16 @@ function PipelineAnimation({ currentStage }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.03 }}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
-                active ? "bg-ocean-400/10 shadow-[inset_0_0_0_1px_rgba(28,171,242,0.3)]" : ""
+                active ? "bg-ocean-50 shadow-[inset_0_0_0_1px_rgba(28,171,242,0.25)]" : ""
               }`}
             >
               <div
                 className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${
                   done
-                    ? "bg-seaweed-500/20 text-seaweed-400"
+                    ? "bg-seaweed-100 text-seaweed-600"
                     : active
-                    ? "bg-ocean-500/25 text-ocean-300"
-                    : "bg-white/5 text-white/30"
+                    ? "bg-ocean-100 text-ocean-600"
+                    : "bg-slate-100 text-slate-400"
                 }`}
               >
                 {done ? (
@@ -271,7 +271,7 @@ function PipelineAnimation({ currentStage }) {
                   <s.icon className="w-4 h-4" />
                 )}
               </div>
-              <span className={`text-sm font-medium ${done ? "text-white/50" : active ? "text-white" : "text-white/30"}`}>
+              <span className={`text-sm font-medium ${done ? "text-slate-400" : active ? "text-slate-900" : "text-slate-300"}`}>
                 {s.label}
               </span>
               {active && (
@@ -279,7 +279,7 @@ function PipelineAnimation({ currentStage }) {
                   {[0, 1, 2].map((d) => (
                     <motion.span
                       key={d}
-                      className="w-1.5 h-1.5 rounded-full bg-ocean-300"
+                      className="w-1.5 h-1.5 rounded-full bg-ocean-500"
                       animate={{ opacity: [0.2, 1, 0.2] }}
                       transition={{ repeat: Infinity, duration: 1, delay: d * 0.15 }}
                     />
@@ -312,23 +312,23 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
           <div className="flex items-center gap-4">
             <div
               className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
-                isHealthy ? "bg-seaweed-500/20 text-seaweed-400" : "bg-coral-500/20 text-coral-400"
+                isHealthy ? "bg-seaweed-100 text-seaweed-600" : "bg-coral-100 text-coral-500"
               }`}
             >
               {isHealthy ? <CheckCircle2 className="w-7 h-7" /> : <AlertTriangle className="w-7 h-7" />}
             </div>
             <div>
-              <div className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-0.5">
+              <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-0.5">
                 Diagnosis Result
               </div>
-              <h2 className="font-display text-2xl font-bold text-white">{diseaseInfo?.name}</h2>
+              <h2 className="font-display text-2xl font-bold text-slate-900">{diseaseInfo?.name}</h2>
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-3xl font-display font-bold ${isHealthy ? "text-seaweed-400" : "text-coral-400"}`}>
+            <div className={`text-3xl font-display font-bold ${isHealthy ? "text-seaweed-600" : "text-coral-600"}`}>
               {result.confidence_pct}%
             </div>
-            <div className="text-xs text-white/50">Confidence</div>
+            <div className="text-xs text-slate-500">Confidence</div>
           </div>
         </div>
       </motion.div>
@@ -342,11 +342,11 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
           className="glass-card rounded-2xl p-5 space-y-4"
         >
           <img src={preview} alt="Analyzed fish" className="w-full h-48 object-cover rounded-xl" />
-          <div className="flex items-center gap-2 text-white/50 text-sm">
+          <div className="flex items-center gap-2 text-slate-500 text-sm">
             <Clock className="w-4 h-4" /> {formatDateTime(result.created_at || new Date().toISOString())}
           </div>
           <div>
-            <div className="text-xs text-white/40 uppercase tracking-wide font-semibold mb-2">
+            <div className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-2">
               Confidence Breakdown
             </div>
             <div className="space-y-2">
@@ -354,11 +354,11 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
                 const info = getDiseaseInfo(cls);
                 return (
                   <div key={cls}>
-                    <div className="flex justify-between text-xs text-white/60 mb-1">
+                    <div className="flex justify-between text-xs text-slate-500 mb-1">
                       <span>{info.shortName}</span>
                       <span>{(score * 100).toFixed(1)}%</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${score * 100}%` }}
@@ -368,7 +368,7 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
                             ? isHealthy
                               ? "bg-seaweed-400"
                               : "bg-coral-400"
-                            : "bg-white/25"
+                            : "bg-slate-300"
                         }`}
                       />
                     </div>
@@ -387,18 +387,18 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
           className="lg:col-span-2 glass-card rounded-2xl p-6 space-y-6"
         >
           <div>
-            <h3 className="font-display font-semibold text-white mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-ocean-300" /> What This Means
+            <h3 className="font-display font-semibold text-slate-900 mb-2 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-ocean-500" /> What This Means
             </h3>
-            <p className="text-white/70 text-sm leading-relaxed">{diseaseInfo?.summary}</p>
+            <p className="text-slate-600 text-sm leading-relaxed">{diseaseInfo?.summary}</p>
           </div>
 
           {!isHealthy && (
             <div>
-              <h3 className="font-display font-semibold text-white mb-2">Common Symptoms</h3>
+              <h3 className="font-display font-semibold text-slate-900 mb-2">Common Symptoms</h3>
               <ul className="space-y-1.5">
                 {diseaseInfo?.symptoms?.slice(0, 3).map((s) => (
-                  <li key={s} className="flex items-start gap-2 text-sm text-white/60">
+                  <li key={s} className="flex items-start gap-2 text-sm text-slate-500">
                     <ChevronRight className="w-4 h-4 text-coral-400 shrink-0 mt-0.5" /> {s}
                   </li>
                 ))}
@@ -407,18 +407,18 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
           )}
 
           <div>
-            <h3 className="font-display font-semibold text-white mb-2">Recommended Next Steps</h3>
+            <h3 className="font-display font-semibold text-slate-900 mb-2">Recommended Next Steps</h3>
             <ul className="space-y-1.5">
               {diseaseInfo?.management?.slice(0, isHealthy ? 3 : 4).map((s) => (
-                <li key={s} className="flex items-start gap-2 text-sm text-white/60">
-                  <CheckCircle2 className="w-4 h-4 text-ocean-300 shrink-0 mt-0.5" /> {s}
+                <li key={s} className="flex items-start gap-2 text-sm text-slate-500">
+                  <CheckCircle2 className="w-4 h-4 text-ocean-500 shrink-0 mt-0.5" /> {s}
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/50 leading-relaxed">
-            <strong className="text-white/70">Disclaimer:</strong> This result is generated by an
+          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-500 leading-relaxed">
+            <strong className="text-slate-700">Disclaimer:</strong> This result is generated by an
             AI-assisted image classification model and is intended to support, not replace,
             professional veterinary or aquaculture-expert judgment. For confirmed diagnosis or
             treatment, please consult a qualified professional.

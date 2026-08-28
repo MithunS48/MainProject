@@ -31,12 +31,12 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
-        <p className="text-white/60 mt-1">System-wide overview of users, predictions, and model performance.</p>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
+        <p className="text-slate-500 mt-1">System-wide overview of users, predictions, and model performance.</p>
       </motion.div>
 
       {loading ? (
-        <div className="text-white/40 text-sm py-16 text-center">Loading overview...</div>
+        <div className="text-slate-400 text-sm py-16 text-center">Loading overview...</div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -54,10 +54,10 @@ export default function AdminDashboard() {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="text-lg sm:text-xl font-display font-bold text-white">
+                <div className="text-lg sm:text-xl font-display font-bold text-slate-900">
                   {mostDetected ? mostDetected.shortName : "—"}
                 </div>
-                <div className="text-xs sm:text-sm text-white/60 font-medium">Most Detected Disease</div>
+                <div className="text-xs sm:text-sm text-slate-500 font-medium">Most Detected Disease</div>
               </div>
             </div>
           </div>
@@ -80,10 +80,10 @@ function QuickLink({ to, icon: Icon, title, desc }) {
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <div className="font-semibold text-white text-sm">{title}</div>
-          <div className="text-xs text-white/50 mt-0.5">{desc}</div>
+          <div className="font-semibold text-slate-900 text-sm">{title}</div>
+          <div className="text-xs text-slate-500 mt-0.5">{desc}</div>
         </div>
-        <ArrowRight className="w-4 h-4 text-white/30" />
+        <ArrowRight className="w-4 h-4 text-slate-300" />
       </motion.div>
     </Link>
   );

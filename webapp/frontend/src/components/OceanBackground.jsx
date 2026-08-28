@@ -1,20 +1,21 @@
 import { useMemo } from "react";
 
 /**
- * Lightweight animated aquaculture background: gradient ocean base,
+ * Lightweight animated aquaculture background: soft gradient wash,
  * subtle grid, rising bubbles, and a couple of drifting fish silhouettes.
  * Pure CSS animation (see tailwind.config.js keyframes) — no JS render
- * loop, so it stays smooth and cheap.
+ * loop, so it stays smooth and cheap. Designed to sit BEHIND content at
+ * low opacity so it never competes for attention or muddies text.
  */
-export default function OceanBackground({ variant = "dark", fishCount = 3, bubbleCount = 14 }) {
+export default function OceanBackground({ variant = "light", fishCount = 3, bubbleCount = 14 }) {
   const bubbles = useMemo(
     () =>
       Array.from({ length: bubbleCount }).map((_, i) => ({
         id: i,
         left: Math.random() * 100,
-        size: 4 + Math.random() * 10,
+        size: 4 + Math.random() * 9,
         delay: Math.random() * 8,
-        duration: 6 + Math.random() * 8,
+        duration: 7 + Math.random() * 8,
       })),
     [bubbleCount]
   );
@@ -23,11 +24,11 @@ export default function OceanBackground({ variant = "dark", fishCount = 3, bubbl
     () =>
       Array.from({ length: fishCount }).map((_, i) => ({
         id: i,
-        top: 15 + Math.random() * 65,
-        size: 28 + Math.random() * 30,
+        top: 12 + Math.random() * 68,
+        size: 26 + Math.random() * 26,
         delay: Math.random() * 10,
-        duration: 16 + Math.random() * 10,
-        opacity: 0.12 + Math.random() * 0.15,
+        duration: 18 + Math.random() * 10,
+        opacity: 0.06 + Math.random() * 0.07,
       })),
     [fishCount]
   );
@@ -40,7 +41,7 @@ export default function OceanBackground({ variant = "dark", fishCount = 3, bubbl
         className={
           isDark
             ? "absolute inset-0 bg-ocean-gradient"
-            : "absolute inset-0 bg-gradient-to-b from-ocean-50 via-white to-ocean-100"
+            : "absolute inset-0 bg-gradient-to-b from-ocean-50 via-white to-white"
         }
       />
       <div className="absolute inset-0 bg-aqua-radial" />
@@ -77,7 +78,7 @@ export default function OceanBackground({ variant = "dark", fishCount = 3, bubbl
             height: `${b.size}px`,
             background: isDark
               ? "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), rgba(255,255,255,0.05))"
-              : "radial-gradient(circle at 30% 30%, rgba(28,171,242,0.5), rgba(28,171,242,0.05))",
+              : "radial-gradient(circle at 30% 30%, rgba(28,171,242,0.35), rgba(28,171,242,0.03))",
             animationDuration: `${b.duration}s`,
             animationDelay: `${b.delay}s`,
           }}

@@ -22,11 +22,11 @@ export default function StatCard({ icon: Icon, label, value, suffix = "", decima
         {Icon && <Icon className="w-6 h-6 text-white" strokeWidth={2} />}
       </div>
       <div>
-        <div className="text-2xl sm:text-3xl font-display font-bold text-white">
+        <div className="text-2xl sm:text-3xl font-display font-bold text-slate-900">
           <CountUp end={value} decimals={decimals} />
           {suffix}
         </div>
-        <div className="text-xs sm:text-sm text-white/60 font-medium">{label}</div>
+        <div className="text-xs sm:text-sm text-slate-500 font-medium">{label}</div>
       </div>
     </motion.div>
   );

@@ -58,13 +58,13 @@ export default function PredictionManagement() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">Prediction Management</h1>
-        <p className="text-white/60 mt-1">Browse and filter every prediction made across the platform.</p>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">Prediction Management</h1>
+        <p className="text-slate-500 mt-1">Browse and filter every prediction made across the platform.</p>
       </motion.div>
 
       <div className="glass-card rounded-2xl p-4 flex flex-col sm:flex-row gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             value={search}
             onChange={(e) => {
@@ -95,49 +95,49 @@ export default function PredictionManagement() {
 
       <div className="glass-card rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="text-center py-16 text-white/40 text-sm">Loading predictions...</div>
+          <div className="text-center py-16 text-slate-400 text-sm">Loading predictions...</div>
         ) : items.length === 0 ? (
           <div className="text-center py-16">
-            <ClipboardList className="w-10 h-10 text-white/20 mx-auto mb-3" />
-            <p className="text-white/50 text-sm">No predictions match your filters.</p>
+            <ClipboardList className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-500 text-sm">No predictions match your filters.</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10 text-left">
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Image</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">User</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Prediction</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden md:table-cell">Confidence</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide hidden lg:table-cell">Date</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide">Status</th>
-                <th className="px-5 py-3 text-xs font-semibold text-white/40 uppercase tracking-wide"></th>
+              <tr className="border-b border-slate-200 text-left">
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Image</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">User</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Prediction</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide hidden md:table-cell">Confidence</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide hidden lg:table-cell">Date</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Status</th>
+                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide"></th>
               </tr>
             </thead>
             <tbody>
               {items.map((p) => {
                 const info = getDiseaseInfo(p.predicted_class);
                 return (
-                  <tr key={p.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3">
-                      <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-white/5" />
+                      <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-slate-100" />
                     </td>
                     <td className="px-5 py-3">
-                      <div className="text-sm font-medium text-white">{p.user_name}</div>
-                      <div className="text-xs text-white/40">{p.user_email}</div>
+                      <div className="text-sm font-medium text-slate-900">{p.user_name}</div>
+                      <div className="text-xs text-slate-400">{p.user_email}</div>
                     </td>
-                    <td className="px-5 py-3 text-sm text-white">{info.name}</td>
+                    <td className="px-5 py-3 text-sm text-slate-900">{info.name}</td>
                     <td className="px-5 py-3 hidden md:table-cell">
-                      <span className={`text-sm font-semibold ${info.isHealthy ? "text-seaweed-400" : "text-coral-400"}`}>
+                      <span className={`text-sm font-semibold ${info.isHealthy ? "text-seaweed-600" : "text-coral-600"}`}>
                         {p.confidence_pct}%
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-sm text-white/50 hidden lg:table-cell">{formatDateTime(p.created_at)}</td>
+                    <td className="px-5 py-3 text-sm text-slate-500 hidden lg:table-cell">{formatDateTime(p.created_at)}</td>
                     <td className="px-5 py-3">
                       <StatusBadge status={p.status} />
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <button onClick={() => setSelected(p)} className="text-ocean-300 hover:text-ocean-200 text-sm font-medium inline-flex items-center gap-1">
+                      <button onClick={() => setSelected(p)} className="text-ocean-600 hover:text-ocean-700 text-sm font-medium inline-flex items-center gap-1">
                         <Eye className="w-4 h-4" /> View
                       </button>
                     </td>
@@ -151,7 +151,7 @@ export default function PredictionManagement() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/40">Page {page} of {totalPages} &bull; {total} total</span>
+          <span className="text-sm text-slate-400">Page {page} of {totalPages} &bull; {total} total</span>
           <div className="flex gap-2">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary !px-3 !py-2 disabled:opacity-30">
               <ChevronLeft className="w-4 h-4" />
@@ -173,13 +173,13 @@ export default function PredictionManagement() {
 function StatusBadge({ status }) {
   if (status === "success") {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold text-seaweed-400">
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-seaweed-600">
         <CheckCircle2 className="w-3.5 h-3.5" /> Success
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-coral-400">
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-coral-600">
       <AlertTriangle className="w-3.5 h-3.5" /> Error
     </span>
   );
@@ -204,8 +204,8 @@ function DetailModal({ prediction, onClose }) {
         className="glass-card rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[85vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-display text-xl font-bold text-white">Prediction Detail</h3>
-          <button onClick={onClose} className="text-white/40 hover:text-white">
+          <h3 className="font-display text-xl font-bold text-slate-900">Prediction Detail</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -214,19 +214,19 @@ function DetailModal({ prediction, onClose }) {
           <Row label="User" value={prediction.user_name} />
           <Row label="Email" value={prediction.user_email} />
           <Row label="Diagnosis" value={info.name} />
-          <Row label="Confidence" value={`${prediction.confidence_pct}%`} valueClass={info.isHealthy ? "text-seaweed-400" : "text-coral-400"} />
+          <Row label="Confidence" value={`${prediction.confidence_pct}%`} valueClass={info.isHealthy ? "text-seaweed-600" : "text-coral-600"} />
           <Row label="Date" value={formatDateTime(prediction.created_at)} />
           <Row label="Status" value={<StatusBadge status={prediction.status} />} />
-          {prediction.error_message && <Row label="Error" value={prediction.error_message} valueClass="text-coral-300" />}
+          {prediction.error_message && <Row label="Error" value={prediction.error_message} valueClass="text-coral-600" />}
         </div>
         {prediction.all_scores && (
           <div className="mt-5">
-            <div className="text-xs text-white/40 uppercase tracking-wide font-semibold mb-2">All Scores</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-2">All Scores</div>
             <div className="space-y-2">
               {Object.entries(prediction.all_scores).map(([cls, score]) => (
                 <div key={cls} className="flex justify-between text-sm">
-                  <span className="text-white/60">{getDiseaseInfo(cls).shortName}</span>
-                  <span className="text-white font-medium">{(score * 100).toFixed(1)}%</span>
+                  <span className="text-slate-500">{getDiseaseInfo(cls).shortName}</span>
+                  <span className="text-slate-900 font-medium">{(score * 100).toFixed(1)}%</span>
                 </div>
               ))}
             </div>
@@ -240,8 +240,8 @@ function DetailModal({ prediction, onClose }) {
 function Row({ label, value, valueClass = "" }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-white/40">{label}</span>
-      <span className={`font-medium text-white ${valueClass}`}>{value}</span>
+      <span className="text-slate-400">{label}</span>
+      <span className={`font-medium text-slate-900 ${valueClass}`}>{value}</span>
     </div>
   );
 }

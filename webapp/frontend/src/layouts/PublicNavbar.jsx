@@ -29,7 +29,7 @@ export default function PublicNavbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-ocean-950/80 backdrop-blur-lg border-b border-white/10 py-3" : "py-5"
+        scrolled ? "bg-white/85 backdrop-blur-lg border-b border-slate-200 py-3 shadow-sm" : "py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between">
@@ -37,7 +37,7 @@ export default function PublicNavbar() {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-ocean-400 to-seaweed-500 flex items-center justify-center shadow-glow-ocean group-hover:scale-110 transition-transform">
             <Fish className="w-5 h-5 text-white" />
           </div>
-          <span className="font-display font-bold text-lg text-white">AquaScan</span>
+          <span className="font-display font-bold text-lg text-slate-900">AquaScan</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
@@ -45,7 +45,7 @@ export default function PublicNavbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
               {link.label}
             </a>
@@ -62,7 +62,7 @@ export default function PublicNavbar() {
             </button>
           ) : (
             <>
-              <Link to="/login" className="text-sm font-semibold text-white/80 hover:text-white px-4 py-2">
+              <Link to="/login" className="text-sm font-semibold text-slate-600 hover:text-slate-900 px-4 py-2">
                 Log In
               </Link>
               <Link to="/register" className="btn-primary !py-2.5 !px-5 text-sm">
@@ -72,7 +72,7 @@ export default function PublicNavbar() {
           )}
         </div>
 
-        <button className="md:hidden text-white" onClick={() => setOpen(!open)}>
+        <button className="md:hidden text-slate-700" onClick={() => setOpen(!open)}>
           {open ? <X /> : <Menu />}
         </button>
       </div>
@@ -83,7 +83,7 @@ export default function PublicNavbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-ocean-950/95 backdrop-blur-lg border-t border-white/10 mt-3"
+            className="md:hidden overflow-hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 mt-3"
           >
             <div className="px-5 py-4 flex flex-col gap-4">
               {NAV_LINKS.map((link) => (
@@ -91,12 +91,12 @@ export default function PublicNavbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="text-white/80 font-medium"
+                  className="text-slate-700 font-medium"
                 >
                   {link.label}
                 </a>
               ))}
-              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+              <div className="flex flex-col gap-2 pt-2 border-t border-slate-200">
                 {user ? (
                   <button
                     onClick={() => {

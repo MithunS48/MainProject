@@ -47,17 +47,17 @@ export default function FarmerDashboard() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl glass-card p-8 sm:p-10"
+        className="relative overflow-hidden rounded-3xl glass-card p-8 sm:p-10 bg-gradient-to-br from-ocean-50 via-white to-seaweed-50/60"
       >
-        <OceanBackground fishCount={3} bubbleCount={10} />
+        <OceanBackground fishCount={3} bubbleCount={10} variant="light" />
         <div className="relative z-10">
-          <span className="pill bg-white/10 text-ocean-200 border border-white/10 mb-4">
+          <span className="pill bg-ocean-100 text-ocean-700 border border-ocean-200 mb-4">
             <Sparkles className="w-3.5 h-3.5" /> Welcome back
           </span>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">
             Hello, {user?.full_name?.split(" ")[0] || "Farmer"} 👋
           </h1>
-          <p className="text-white/60 mt-2 max-w-xl">
+          <p className="text-slate-500 mt-2 max-w-xl">
             Keep your fish stock healthy with instant, AI-powered disease detection.
             Upload a photo any time you spot something unusual.
           </p>
@@ -88,7 +88,7 @@ export default function FarmerDashboard() {
             transition={{ delay: 0.1 + i * 0.08 }}
             whileHover={{ y: -4 }}
           >
-            <Link to={a.to} className="glass-card rounded-2xl p-5 flex items-center gap-4 h-full">
+            <Link to={a.to} className="glass-card hover:shadow-md transition-shadow rounded-2xl p-5 flex items-center gap-4 h-full">
               <div
                 className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br ${
                   a.accent === "ocean"
@@ -101,10 +101,10 @@ export default function FarmerDashboard() {
                 <a.icon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-white text-sm">{a.title}</div>
-                <div className="text-xs text-white/50 mt-0.5">{a.desc}</div>
+                <div className="font-semibold text-slate-900 text-sm">{a.title}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{a.desc}</div>
               </div>
-              <ArrowRight className="w-4 h-4 text-white/30" />
+              <ArrowRight className="w-4 h-4 text-slate-300" />
             </Link>
           </motion.div>
         ))}
@@ -113,20 +113,20 @@ export default function FarmerDashboard() {
       {/* Recent predictions */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display font-semibold text-white flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-ocean-300" /> Recent Predictions
+          <h2 className="font-display font-semibold text-slate-900 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-ocean-500" /> Recent Predictions
           </h2>
-          <Link to="/dashboard/history" className="text-sm text-ocean-300 hover:text-ocean-200 font-medium">
+          <Link to="/dashboard/history" className="text-sm text-ocean-600 hover:text-ocean-700 font-medium">
             View all
           </Link>
         </div>
 
         {loading ? (
-          <div className="text-white/40 text-sm py-8 text-center">Loading...</div>
+          <div className="text-slate-400 text-sm py-8 text-center">Loading...</div>
         ) : recent.length === 0 ? (
           <div className="text-center py-10">
-            <Fish className="w-10 h-10 text-white/20 mx-auto mb-3" />
-            <p className="text-white/50 text-sm">No predictions yet. Analyze your first fish image!</p>
+            <Fish className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-500 text-sm">No predictions yet. Analyze your first fish image!</p>
             <Link to="/dashboard/detect" className="btn-secondary mt-4 inline-flex text-sm">
               <ScanLine className="w-4 h-4" /> Get Started
             </Link>
@@ -138,20 +138,20 @@ export default function FarmerDashboard() {
               return (
                 <div
                   key={p.id}
-                  className="flex items-center gap-4 rounded-xl px-3 py-3 hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-4 rounded-xl px-3 py-3 hover:bg-slate-50 transition-colors"
                 >
                   <img
                     src={p.image_url}
                     alt=""
-                    className="w-12 h-12 rounded-lg object-cover shrink-0 bg-white/5"
+                    className="w-12 h-12 rounded-lg object-cover shrink-0 bg-slate-100"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-white truncate">{info.name}</div>
-                    <div className="text-xs text-white/40">{formatDateTime(p.created_at)}</div>
+                    <div className="text-sm font-medium text-slate-900 truncate">{info.name}</div>
+                    <div className="text-xs text-slate-400">{formatDateTime(p.created_at)}</div>
                   </div>
                   <div
                     className={`text-sm font-semibold shrink-0 ${
-                      info.isHealthy ? "text-seaweed-400" : "text-coral-400"
+                      info.isHealthy ? "text-seaweed-600" : "text-coral-600"
                     }`}
                   >
                     {p.confidence_pct}%

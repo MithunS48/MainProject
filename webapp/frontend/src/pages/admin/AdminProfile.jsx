@@ -35,8 +35,8 @@ export default function AdminProfile() {
   return (
     <div className="max-w-2xl space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">My Profile</h1>
-        <p className="text-white/60 mt-1">Manage your administrator account information.</p>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">My Profile</h1>
+        <p className="text-slate-500 mt-1">Manage your administrator account information.</p>
       </motion.div>
 
       <div className="glass-card rounded-3xl p-6 sm:p-8">
@@ -45,8 +45,8 @@ export default function AdminProfile() {
             {user?.full_name?.[0]?.toUpperCase() || "A"}
           </div>
           <div className="flex-1">
-            <div className="font-display text-lg font-bold text-white">{user?.full_name}</div>
-            <div className="text-sm text-white/50">{user?.email}</div>
+            <div className="font-display text-lg font-bold text-slate-900">{user?.full_name}</div>
+            <div className="text-sm text-slate-500">{user?.email}</div>
           </div>
           {!editing && (
             <button onClick={() => setEditing(true)} className="btn-secondary !py-2 !px-4 text-sm">
@@ -56,18 +56,18 @@ export default function AdminProfile() {
         </div>
 
         {editing ? (
-          <div className="space-y-4 border-t border-white/10 pt-6">
+          <div className="space-y-4 border-t border-slate-100 pt-6">
             <div>
-              <label className="text-sm font-medium text-white/70 mb-1.5 block">Full Name</label>
+              <label className="text-sm font-medium text-slate-600 mb-1.5 block">Full Name</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field pl-11" />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-white/70 mb-1.5 block">Email</label>
+              <label className="text-sm font-medium text-slate-600 mb-1.5 block">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input value={email} onChange={(e) => setEmail(e.target.value)} className="input-field pl-11" />
               </div>
             </div>
@@ -88,7 +88,7 @@ export default function AdminProfile() {
             </div>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-4 border-t border-white/10 pt-6">
+          <div className="grid sm:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
             <InfoTile icon={Calendar} label="Member Since" value={formatDate(user?.created_at)} />
             <InfoTile icon={ShieldCheck} label="Account Role" value="Administrator" />
           </div>
@@ -100,11 +100,11 @@ export default function AdminProfile() {
 
 function InfoTile({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
-      <Icon className="w-4 h-4 text-coral-300 shrink-0" />
+    <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
+      <Icon className="w-4 h-4 text-coral-500 shrink-0" />
       <div>
-        <div className="text-xs text-white/40">{label}</div>
-        <div className="text-sm font-semibold text-white">{value}</div>
+        <div className="text-xs text-slate-400">{label}</div>
+        <div className="text-sm font-semibold text-slate-900">{value}</div>
       </div>
     </div>
   );
