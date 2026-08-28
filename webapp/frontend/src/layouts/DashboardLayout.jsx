@@ -97,9 +97,9 @@ export default function DashboardLayout({ children, variant = "farmer" }) {
   );
 
   return (
-    <div className="min-h-screen bg-ocean-950 flex">
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-72 shrink-0 flex-col bg-white/[0.03] border-r border-white/10 fixed inset-y-0">
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Desktop sidebar (dark, premium) */}
+      <aside className="hidden lg:flex w-72 shrink-0 flex-col bg-ocean-950 border-r border-white/10 fixed inset-y-0">
         <SidebarContent />
       </aside>
 
@@ -129,13 +129,13 @@ export default function DashboardLayout({ children, variant = "farmer" }) {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-72 min-w-0">
-        <header className="lg:hidden sticky top-0 z-30 bg-ocean-950/90 backdrop-blur-lg border-b border-white/10 px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setOpen(true)} className="text-white p-2">
+        <header className="lg:hidden sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <button onClick={() => setOpen(true)} className="text-slate-700 p-2">
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2">
-            <Fish className="w-5 h-5 text-ocean-400" />
-            <span className="font-display font-bold text-white">AquaScan</span>
+            <Fish className="w-5 h-5 text-ocean-500" />
+            <span className="font-display font-bold text-slate-900">AquaScan</span>
           </div>
           <div className="w-9" />
         </header>

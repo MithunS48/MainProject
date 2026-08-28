@@ -25,7 +25,7 @@ function Section({ id, className = "", children }) {
   );
 }
 
-function SectionHeading({ eyebrow, title, subtitle, light = false }) {
+function SectionHeading({ eyebrow, title, subtitle }) {
   return (
     <motion.div
       initial="hidden"
@@ -35,14 +35,12 @@ function SectionHeading({ eyebrow, title, subtitle, light = false }) {
       transition={{ duration: 0.6 }}
       className="text-center max-w-2xl mx-auto mb-14"
     >
-      <span className={`pill ${light ? "bg-ocean-100 text-ocean-700" : "bg-white/10 text-ocean-300"} mb-4`}>
+      <span className="pill bg-ocean-50 text-ocean-700 border border-ocean-100 mb-4">
         <Sparkles className="w-3.5 h-3.5" /> {eyebrow}
       </span>
-      <h2 className={`section-title ${light ? "text-slate-900" : "text-white"}`}>{title}</h2>
+      <h2 className="section-title">{title}</h2>
       {subtitle && (
-        <p className={`mt-4 text-base sm:text-lg ${light ? "text-slate-600" : "text-white/60"}`}>
-          {subtitle}
-        </p>
+        <p className="mt-4 text-base sm:text-lg text-slate-500">{subtitle}</p>
       )}
     </motion.div>
   );
@@ -74,26 +72,26 @@ const WHY_US = [
 
 export default function LandingPage() {
   return (
-    <div className="bg-ocean-950 min-h-screen">
+    <div className="bg-white min-h-screen">
       <PublicNavbar />
 
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center pt-28 pb-16 px-5 sm:px-8 overflow-hidden">
-        <OceanBackground fishCount={4} bubbleCount={18} />
-        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center">
+      <section className="relative pt-32 sm:pt-40 pb-20 px-5 sm:px-8 overflow-hidden">
+        <OceanBackground fishCount={4} bubbleCount={16} />
+        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-14 items-center">
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <span className="pill bg-white/10 text-ocean-200 mb-6 border border-white/10">
+            <span className="pill bg-ocean-50 text-ocean-700 mb-6 border border-ocean-100">
               <ShieldCheck className="w-3.5 h-3.5" /> AI-Assisted Aquaculture Diagnostics
             </span>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.08] text-white">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.1] text-slate-900">
               AI-Based Fish Disease{" "}
               <span className="shimmer-text">Detection</span>
             </h1>
-            <p className="mt-6 text-lg text-white/70 max-w-lg leading-relaxed">
+            <p className="mt-6 text-lg text-slate-500 max-w-lg leading-relaxed">
               Detect fish diseases quickly using advanced deep-learning
               feature fusion and machine learning. Upload a photo, get an
               instant, easy-to-understand diagnosis.
@@ -107,7 +105,7 @@ export default function LandingPage() {
               </a>
             </div>
 
-            <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="mt-12 grid grid-cols-2 gap-4 max-w-md">
               <StatCard icon={TrendingUp} label="Accuracy" value={98.29} suffix="%" decimals={2} accent="seaweed" />
               <StatCard icon={Activity} label="AUC Score" value={0.9989} suffix="" decimals={4} accent="ocean" delay={0.1} />
               <StatCard icon={Layers} label="Disease Classes" value={4} accent="coral" delay={0.2} />
@@ -121,7 +119,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative flex justify-center"
           >
-            <div className="absolute inset-0 bg-ocean-400/20 blur-[100px] rounded-full" />
+            <div className="absolute inset-0 bg-ocean-400/15 blur-[100px] rounded-full" />
             <motion.img
               src={heroFish}
               alt="AI-analyzed fish"
@@ -152,16 +150,16 @@ export default function LandingPage() {
               <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-br from-ocean-400 to-seaweed-500 flex items-center justify-center text-sm font-bold text-white shadow-glow-ocean">
                 {i + 1}
               </div>
-              <step.icon className="w-8 h-8 text-ocean-300 mb-4" />
-              <h3 className="font-display font-semibold text-white mb-2">{step.title}</h3>
-              <p className="text-sm text-white/60 leading-relaxed">{step.desc}</p>
+              <step.icon className="w-8 h-8 text-ocean-500 mb-4" />
+              <h3 className="font-display font-semibold text-slate-900 mb-2">{step.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{step.desc}</p>
             </motion.div>
           ))}
         </div>
       </Section>
 
       {/* AI TECHNOLOGY */}
-      <Section id="technology" className="bg-white/[0.02]">
+      <Section id="technology" className="bg-slate-50">
         <SectionHeading
           eyebrow="AI Technology"
           title="Dual-CNN Feature Fusion + Polynomial SVM"
@@ -178,12 +176,12 @@ export default function LandingPage() {
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="glass-card rounded-2xl px-5 py-4 flex flex-col items-center gap-2 min-w-[130px] hover:shadow-glow-ocean transition-shadow"
               >
-                <step.icon className="w-6 h-6 text-ocean-300" />
-                <div className="text-sm font-semibold text-white text-center">{step.label}</div>
-                <div className="text-xs text-white/50 text-center">{step.detail}</div>
+                <step.icon className="w-6 h-6 text-ocean-500" />
+                <div className="text-sm font-semibold text-slate-900 text-center">{step.label}</div>
+                <div className="text-xs text-slate-500 text-center">{step.detail}</div>
               </motion.div>
               {i < TECH_PIPELINE.length - 1 && (
-                <ArrowRight className="w-5 h-5 text-white/30 hidden sm:block" />
+                <ArrowRight className="w-5 h-5 text-slate-300 hidden sm:block" />
               )}
             </div>
           ))}
@@ -191,16 +189,16 @@ export default function LandingPage() {
 
         <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto text-center">
           <div className="glass-card rounded-2xl p-6">
-            <div className="text-3xl font-display font-bold text-seaweed-400">98.29%</div>
-            <div className="text-sm text-white/60 mt-1">Test Accuracy</div>
+            <div className="text-3xl font-display font-bold text-seaweed-600">98.29%</div>
+            <div className="text-sm text-slate-500 mt-1">Test Accuracy</div>
           </div>
           <div className="glass-card rounded-2xl p-6">
-            <div className="text-3xl font-display font-bold text-ocean-400">0.9829</div>
-            <div className="text-sm text-white/60 mt-1">F1-Score</div>
+            <div className="text-3xl font-display font-bold text-ocean-600">0.9829</div>
+            <div className="text-sm text-slate-500 mt-1">F1-Score</div>
           </div>
           <div className="glass-card rounded-2xl p-6">
-            <div className="text-3xl font-display font-bold text-coral-400">0.9989</div>
-            <div className="text-sm text-white/60 mt-1">Macro AUC</div>
+            <div className="text-3xl font-display font-bold text-coral-500">0.9989</div>
+            <div className="text-sm text-slate-500 mt-1">Macro AUC</div>
           </div>
         </div>
       </Section>
@@ -216,9 +214,9 @@ export default function LandingPage() {
           {DISEASE_ORDER.map((key, i) => {
             const d = getDiseaseInfo(key);
             const colorMap = {
-              coral: "from-coral-500/20 to-coral-600/5 border-coral-500/30 text-coral-300",
-              seaweed: "from-seaweed-500/20 to-seaweed-600/5 border-seaweed-500/30 text-seaweed-300",
-              sand: "from-sand-400/20 to-sand-500/5 border-sand-400/30 text-sand-300",
+              coral: "from-coral-50 to-white border-coral-100 text-coral-600",
+              seaweed: "from-seaweed-50 to-white border-seaweed-100 text-seaweed-600",
+              sand: "from-sand-50 to-white border-sand-200 text-sand-600",
             };
             return (
               <motion.div
@@ -231,8 +229,8 @@ export default function LandingPage() {
                 className={`rounded-2xl p-6 bg-gradient-to-b border ${colorMap[d.color]} glass-card`}
               >
                 <Fish className="w-8 h-8 mb-4" />
-                <h3 className="font-display font-semibold text-white mb-2">{d.shortName}</h3>
-                <p className="text-sm text-white/60 leading-relaxed">{d.summary}</p>
+                <h3 className="font-display font-semibold text-slate-900 mb-2">{d.shortName}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{d.summary}</p>
               </motion.div>
             );
           })}
@@ -240,7 +238,7 @@ export default function LandingPage() {
       </Section>
 
       {/* WHY THIS SYSTEM */}
-      <Section id="why-us" className="bg-white/[0.02]">
+      <Section id="why-us" className="bg-slate-50">
         <SectionHeading
           eyebrow="Why This System"
           title="Research-Grade Accuracy, Farmer-Friendly Design"
@@ -258,8 +256,8 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-ocean-500 to-seaweed-500 flex items-center justify-center mb-4">
                 <item.icon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-display font-semibold text-white mb-2">{item.title}</h3>
-              <p className="text-sm text-white/60 leading-relaxed">{item.desc}</p>
+              <h3 className="font-display font-semibold text-slate-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
         </div>

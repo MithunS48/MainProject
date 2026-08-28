@@ -15,8 +15,8 @@ html {
 body {
   margin: 0;
   font-family: "Inter", system-ui, sans-serif;
-  background-color: #05131f;
-  color: #eaf6ff;
+  background-color: #f5f9fc;
+  color: #1b2b3a;
   overflow-x: hidden;
 }
 
@@ -28,46 +28,45 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(28, 171, 242, 0.4);
+  background: rgba(28, 171, 242, 0.35);
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(28, 171, 242, 0.6);
+  background: rgba(28, 171, 242, 0.55);
 }
 
 @layer components {
+  /* Light, modern glass card — the default everywhere now */
   .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(15, 60, 90, 0.08);
+    box-shadow: 0 1px 2px rgba(15, 60, 90, 0.04), 0 8px 24px rgba(15, 60, 90, 0.06);
+  }
+
+  /* Dark glass variant, reserved for on-dark surfaces (sidebar, dark hero panels) */
+  .glass-card-dark {
     background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
-  .glass-card-light {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-  }
-
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-ocean-500 to-seaweed-500 px-6 py-3 font-semibold text-white shadow-glow-ocean transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_55px_rgba(28,171,242,0.55)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-ocean-500 to-seaweed-500 px-6 py-3 font-semibold text-white shadow-glow-ocean transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_45px_rgba(28,171,242,0.45)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 font-semibold text-white backdrop-blur transition-all duration-300 hover:bg-white/15 hover:scale-[1.02] active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:scale-[1.02] active:scale-[0.98];
   }
 
   .input-field {
-    @apply w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder-white/40 outline-none transition-all duration-200 focus:border-ocean-400 focus:bg-white/10 focus:ring-2 focus:ring-ocean-400/30;
-  }
-
-  .input-field-light {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 placeholder-slate-400 outline-none transition-all duration-200 focus:border-ocean-500 focus:ring-2 focus:ring-ocean-400/30;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 placeholder-slate-400 outline-none transition-all duration-200 focus:border-ocean-400 focus:ring-2 focus:ring-ocean-400/20;
   }
 
   .section-title {
-    @apply font-display text-3xl sm:text-4xl font-bold tracking-tight;
+    @apply font-display text-3xl sm:text-4xl font-bold tracking-tight text-slate-900;
   }
 
   .pill {
@@ -77,13 +76,13 @@ body {
 
 .bg-noise-grid {
   background-image:
-    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    linear-gradient(rgba(15,60,90,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,60,90,0.04) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 .shimmer-text {
-  background: linear-gradient(90deg, #46c9ff 0%, #1ab469 25%, #46c9ff 50%, #1ab469 75%, #46c9ff 100%);
+  background: linear-gradient(90deg, #0c88ce 0%, #0f9155 25%, #0c88ce 50%, #0f9155 75%, #0c88ce 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
