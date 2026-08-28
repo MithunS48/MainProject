@@ -1,25 +1,23 @@
 """
 feature_extraction.py
 ----------------------
-Extracts deep features from VGG16 and MobileNetV2 for all three
-splits (train / validation / test) and saves them as numpy arrays.
+Extracts deep features from VGG16, MobileNetV2 and ConvNeXtTiny
+for all three splits (train / validation / test).
 
 Feature dimensions:
-  VGG16       : 512  (GlobalAveragePooling2D after conv base)
-  MobileNetV2 : 1280 (GlobalAveragePooling2D after conv base)
-  Fused       : 1792 (concatenation of both)
+  VGG16       : 512
+  MobileNetV2 : 1280
+  ConvNeXt    : 768
+  Fused (all) : 2560
 
-Outputs saved to  results/features/:
-  vgg16_train.npz        vgg16_val.npz        vgg16_test.npz
-  mobilenet_train.npz    mobilenet_val.npz    mobilenet_test.npz
-  fused_train.npz        fused_val.npz        fused_test.npz
-
-Each .npz contains:
-  features : float32 array  (N, D)
-  labels   : int32   array  (N,)   0=EUS 1=gill 2=healthy 3=red_spot
+Outputs saved to results/features/:
+  vgg16_train/val/test.npz
+  mobilenet_train/val/test.npz
+  convnext_train/val/test.npz
+  fused_train/val/test.npz          (VGG16+MobileNetV2, existing)
+  fused_all_train/val/test.npz      (VGG16+MobileNetV2+ConvNeXt)
 """
 
-import os
 import zipfile
 import numpy as np
 import tensorflow as tf
@@ -36,9 +34,11 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 FEATURE_DIR = RESULTS_DIR / "features"
 FEATURE_DIR.mkdir(parents=True, exist_ok=True)
 
-VGG16_KERAS    = RESULTS_DIR / "VGG16"    / "model" / "vgg16_best.keras"
-MOBILENET_KERAS = RESULTS_DIR / "MobileNetV2" / "model" / "mobilenetv2_best.keras"
-VGG16_WEIGHTS  = RESULTS_DIR / "VGG16"    / "model" / "extracted" / "model.weights.h5"
+VGG16_KERAS      = RESULTS_DIR / "VGG16"       / "model" / "vgg16_best.keras"
+MOBILENET_KERAS  = RESULTS_DIR / "MobileNetV2" / "model" / "mobilenetv2_best.keras"
+CONVNEXT_KERAS   = RESULTS_DIR / "ConvNeXt"    / "model" / "convnext_best.keras"
+VGG16_WEIGHTS    = RESULTS_DIR / "VGG16"       / "model" / "extracted" / "model.weights.h5"
+CONVNEXT_WEIGHTS = RESULTS_DIR / "ConvNeXt"    / "model" / "extracted" / "model.weights.h5"
 
 # ============================================================
 # SETTINGS
@@ -138,7 +138,58 @@ print(f"  MobileNetV2 feature dim: {mobilenet_extractor.output.shape[-1]}")
 
 
 # ============================================================
-# STEP 3 — DATA LOADING HELPER
+# STEP 3 — BUILD ConvNeXtTiny FEATURE EXTRACTOR
+# Uses weights extraction same as VGG16 approach
+# ============================================================
+
+print("\n" + "=" * 65)
+print("BUILDING ConvNeXtTiny FEATURE EXTRACTOR")
+print("=" * 65)
+
+if not CONVNEXT_WEIGHTS.exists():
+    print("  Extracting ConvNeXt weights from .keras archive...")
+    CONVNEXT_WEIGHTS.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(str(CONVNEXT_KERAS), "r") as z:
+        z.extract("model.weights.h5", str(CONVNEXT_WEIGHTS.parent))
+    print(f"  Extracted to: {CONVNEXT_WEIGHTS}")
+else:
+    print(f"  Weights already extracted: {CONVNEXT_WEIGHTS}")
+
+data_augmentation_cx = tf.keras.Sequential([
+    tf.keras.layers.RandomFlip("horizontal"),
+    tf.keras.layers.RandomRotation(0.1),
+    tf.keras.layers.RandomZoom(0.1),
+    tf.keras.layers.RandomTranslation(0.1, 0.1),
+], name="data_augmentation")
+
+convnext_base = tf.keras.applications.ConvNeXtTiny(
+    weights=None,
+    include_top=False,
+    input_shape=(224, 224, 3)
+)
+
+cx_inputs = tf.keras.Input(shape=(224, 224, 3), name="fish_image")
+cx = data_augmentation_cx(cx_inputs)
+cx = tf.keras.layers.Lambda(
+    lambda t: tf.cast(t, tf.float32), name="cast_float32"
+)(cx)
+cx = convnext_base(cx, training=False)
+cx = tf.keras.layers.GlobalAveragePooling2D(name="global_average_pooling")(cx)
+cx = tf.keras.layers.Dense(256, activation="relu", name="dense_256")(cx)
+cx = tf.keras.layers.LayerNormalization(name="layer_norm")(cx)
+cx = tf.keras.layers.Dropout(0.5, name="dropout")(cx)
+cx_out = tf.keras.layers.Dense(NUM_CLASSES, activation="softmax", name="classification")(cx)
+
+convnext_full = tf.keras.Model(inputs=cx_inputs, outputs=cx_out, name="ConvNeXtTiny_Fish_Disease")
+convnext_full.load_weights(str(CONVNEXT_WEIGHTS))
+print("  ConvNeXt weights loaded successfully")
+
+convnext_extractor = tf.keras.Model(
+    inputs=convnext_full.input,
+    outputs=convnext_full.get_layer("global_average_pooling").output,
+    name="ConvNeXt_FeatureExtractor"
+)
+print(f"  ConvNeXt feature dim: {convnext_extractor.output.shape[-1]}")
 # ============================================================
 
 def load_split(split_name):
@@ -194,9 +245,10 @@ def extract_features(extractor, dataset, split_name, model_name):
 
 SPLITS = ["train", "validation", "test"]
 
-vgg16_features    = {}
+vgg16_features     = {}
 mobilenet_features = {}
-all_labels        = {}
+convnext_features  = {}
+all_labels         = {}
 
 for split in SPLITS:
     print(f"\n{'='*65}")
@@ -211,38 +263,53 @@ for split in SPLITS:
     )
     vgg16_features[split] = vgg_feats
     all_labels[split]     = labels
-
     np.savez_compressed(
         str(FEATURE_DIR / f"vgg16_{split}.npz"),
-        features=vgg_feats,
-        labels=labels
+        features=vgg_feats, labels=labels
     )
     print(f"    Saved: features/vgg16_{split}.npz")
 
     # --- MobileNetV2 ---
-    # Reload dataset (iterator exhausted)
     ds = load_split(split)
     mob_feats, _ = extract_features(
         mobilenet_extractor, ds, split, "MobileNetV2"
     )
     mobilenet_features[split] = mob_feats
-
     np.savez_compressed(
         str(FEATURE_DIR / f"mobilenet_{split}.npz"),
-        features=mob_feats,
-        labels=labels
+        features=mob_feats, labels=labels
     )
     print(f"    Saved: features/mobilenet_{split}.npz")
 
-    # --- Fused (concatenation) ---
+    # --- ConvNeXt ---
+    ds = load_split(split)
+    cx_feats, _ = extract_features(
+        convnext_extractor, ds, split, "ConvNeXt"
+    )
+    convnext_features[split] = cx_feats
+    np.savez_compressed(
+        str(FEATURE_DIR / f"convnext_{split}.npz"),
+        features=cx_feats, labels=labels
+    )
+    print(f"    Saved: features/convnext_{split}.npz")
+
+    # --- Fused VGG16+MobileNetV2 ---
     fused = np.concatenate([vgg_feats, mob_feats], axis=1)
     np.savez_compressed(
         str(FEATURE_DIR / f"fused_{split}.npz"),
-        features=fused,
-        labels=labels
+        features=fused, labels=labels
     )
-    print(f"    Fused shape    : {fused.shape}")
+    print(f"    Fused (VGG16+MobileNetV2) shape : {fused.shape}")
     print(f"    Saved: features/fused_{split}.npz")
+
+    # --- Fused ALL (VGG16+MobileNetV2+ConvNeXt) ---
+    fused_all = np.concatenate([vgg_feats, mob_feats, cx_feats], axis=1)
+    np.savez_compressed(
+        str(FEATURE_DIR / f"fused_all_{split}.npz"),
+        features=fused_all, labels=labels
+    )
+    print(f"    Fused ALL shape                 : {fused_all.shape}")
+    print(f"    Saved: features/fused_all_{split}.npz")
 
 
 # ============================================================
@@ -253,25 +320,28 @@ print("\n" + "=" * 65)
 print("FEATURE EXTRACTION COMPLETE")
 print("=" * 65)
 
-print(f"\n{'Split':<12} {'VGG16':>10} {'MobileNet':>12} {'Fused':>10} {'Samples':>10}")
-print("-" * 56)
+print(f"\n{'Split':<12} {'VGG16':>8} {'MobileNet':>10} {'ConvNeXt':>10} {'Fused':>8} {'FusedAll':>10}")
+print("-" * 62)
 
 for split in SPLITS:
-    v = vgg16_features[split].shape
-    m = mobilenet_features[split].shape
-    f_dim = v[1] + m[1]
-    print(f"{split:<12} {str(v):>10} {str(m):>12} {f'({v[0]},{f_dim})':>10} {v[0]:>10}")
+    v  = vgg16_features[split].shape[1]
+    m  = mobilenet_features[split].shape[1]
+    c  = convnext_features[split].shape[1]
+    n  = vgg16_features[split].shape[0]
+    print(f"{split:<12} {v:>8} {m:>10} {c:>10} {v+m:>8} {v+m+c:>10}  (N={n})")
 
-print(f"\nVGG16 feature dim       : {vgg16_features['train'].shape[1]}")
-print(f"MobileNetV2 feature dim : {mobilenet_features['train'].shape[1]}")
-print(f"Fused feature dim       : {vgg16_features['train'].shape[1] + mobilenet_features['train'].shape[1]}")
+print(f"\nVGG16 feature dim         : {vgg16_features['train'].shape[1]}")
+print(f"MobileNetV2 feature dim   : {mobilenet_features['train'].shape[1]}")
+print(f"ConvNeXt feature dim      : {convnext_features['train'].shape[1]}")
+print(f"Fused (V+M) dim           : {vgg16_features['train'].shape[1] + mobilenet_features['train'].shape[1]}")
+print(f"Fused ALL (V+M+C) dim     : {vgg16_features['train'].shape[1] + mobilenet_features['train'].shape[1] + convnext_features['train'].shape[1]}")
 
 print(f"\nAll features saved to: {FEATURE_DIR}")
 
 files = list(FEATURE_DIR.glob("*.npz"))
-print(f"\nFiles created ({len(files)}):")
+print(f"\nFiles ({len(files)}):")
 for f in sorted(files):
     size_mb = f.stat().st_size / (1024 * 1024)
-    print(f"  {f.name:<30} {size_mb:.1f} MB")
+    print(f"  {f.name:<35} {size_mb:.1f} MB")
 
 print("\nNext step: python src/fusion_experiments.py")

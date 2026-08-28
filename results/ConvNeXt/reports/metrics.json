@@ -1,0 +1,20 @@
+{
+    "model": "ConvNeXtTiny",
+    "classes": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "image_size": [
+        224,
+        224
+    ],
+    "batch_size": 32,
+    "note": "Evaluated from best checkpoint (training stopped early)",
+    "test_loss": 0.27443835139274597,
+    "test_accuracy": 0.9087885985748219,
+    "test_precision": 0.9155603653639297,
+    "test_recall": 0.9087885985748219,
+    "test_f1": 0.9099607366107965
+}
