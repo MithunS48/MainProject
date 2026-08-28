@@ -15,6 +15,9 @@ venv/
 
 # Database
 *.sqlite3
+webapp/backend/app.db
+webapp/backend/static/uploads/*
+!webapp/backend/static/uploads/.gitkeep
 
 # OS
 .DS_Store
