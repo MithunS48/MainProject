@@ -158,6 +158,54 @@ export default function LandingPage() {
         </div>
       </Section>
 
+      {/* DEMO VIDEO */}
+      <Section id="demo" className="bg-slate-50">
+        <SectionHeading
+          eyebrow="Live Demo"
+          title="See AquaScan in Action"
+          subtitle="Watch how AquaScan detects fish diseases in real time — from image upload to instant diagnosis."
+        />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="relative max-w-4xl mx-auto"
+        >
+          {/* Glow ring */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-ocean-400 via-seaweed-400 to-ocean-500 rounded-3xl blur-lg opacity-40" />
+
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-900 border border-white/10">
+            {/* Browser bar decoration */}
+            <div className="flex items-center gap-2 px-4 py-3 bg-slate-800 border-b border-slate-700">
+              <div className="w-3 h-3 rounded-full bg-red-400" />
+              <div className="w-3 h-3 rounded-full bg-yellow-400" />
+              <div className="w-3 h-3 rounded-full bg-green-400" />
+              <div className="flex-1 mx-4 h-6 bg-slate-700 rounded-lg flex items-center px-3">
+                <span className="text-slate-400 text-xs">aquascan.ai/detect</span>
+              </div>
+            </div>
+
+            {/* Video */}
+            <video
+              className="w-full"
+              controls
+              preload="metadata"
+              poster="/demo_poster.jpg"
+              playsInline
+            >
+              <source src="/AquaScan_Demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+
+          {/* Caption */}
+          <p className="text-center text-sm text-slate-400 mt-4">
+            Full demo — upload, pipeline animation, confidence scores, and diagnosis report
+          </p>
+        </motion.div>
+      </Section>
+
       {/* AI TECHNOLOGY */}
       <Section id="technology" className="bg-slate-50">
         <SectionHeading

@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 
 const NAV_LINKS = [
   { label: "How It Works", href: "#how-it-works" },
+  { label: "Demo", href: "#demo" },
   { label: "Technology", href: "#technology" },
   { label: "Diseases", href: "#diseases" },
   { label: "Why AquaScan", href: "#why-us" },
