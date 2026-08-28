@@ -1299,7 +1299,6 @@ print(
     )
 )
 
-
 # ================================================================
 # PCA VS NO PCA — ACCURACY
 # ================================================================
@@ -1310,17 +1309,12 @@ accuracy_pivot = results_df.pivot(
     values="Accuracy"
 )
 
-
-fig, ax = plt.subplots(
-    figsize=(13, 7)
-)
-
+fig, ax = plt.subplots(figsize=(13, 7))
 
 accuracy_pivot.plot(
     kind="bar",
     ax=ax
 )
-
 
 ax.set_title(
     "PCA vs No-PCA Accuracy Comparison"
@@ -1334,10 +1328,8 @@ ax.set_ylabel(
     "Accuracy"
 )
 
-ax.set_ylim(
-    0,
-    1
-)
+# Zoom into the useful range
+ax.set_ylim(0.85, 1.00)
 
 ax.tick_params(
     axis="x",
@@ -1348,9 +1340,16 @@ ax.legend(
     title="Experiment"
 )
 
+# Add values above bars
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        fmt="%.3f",
+        padding=2,
+        fontsize=8
+    )
 
 plt.tight_layout()
-
 
 plt.savefig(
     os.path.join(
@@ -1361,12 +1360,10 @@ plt.savefig(
     bbox_inches="tight"
 )
 
-
 plt.close()
 
-
 # ================================================================
-# PCA VS NO PCA — F1
+# PCA VS NO PCA — F1 SCORE
 # ================================================================
 
 f1_pivot = results_df.pivot(
@@ -1375,20 +1372,15 @@ f1_pivot = results_df.pivot(
     values="F1_Score"
 )
 
-
-fig, ax = plt.subplots(
-    figsize=(13, 7)
-)
-
+fig, ax = plt.subplots(figsize=(13, 7))
 
 f1_pivot.plot(
     kind="bar",
     ax=ax
 )
 
-
 ax.set_title(
-    "PCA vs No-PCA F1-score Comparison"
+    "PCA vs No-PCA Weighted F1-score Comparison"
 )
 
 ax.set_xlabel(
@@ -1399,10 +1391,8 @@ ax.set_ylabel(
     "Weighted F1-score"
 )
 
-ax.set_ylim(
-    0,
-    1
-)
+# Zoom into the useful range
+ax.set_ylim(0.85, 1.00)
 
 ax.tick_params(
     axis="x",
@@ -1413,9 +1403,16 @@ ax.legend(
     title="Experiment"
 )
 
+# Add values above bars
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        fmt="%.3f",
+        padding=2,
+        fontsize=8
+    )
 
 plt.tight_layout()
-
 
 plt.savefig(
     os.path.join(
@@ -1425,7 +1422,6 @@ plt.savefig(
     dpi=300,
     bbox_inches="tight"
 )
-
 
 plt.close()
 

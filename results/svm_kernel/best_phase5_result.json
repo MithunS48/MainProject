@@ -1,0 +1,10 @@
+{
+    "Combination": "MobileNetV2_plus_ConvNeXt",
+    "Kernel": "Polynomial",
+    "Feature_Dimension": 2048,
+    "Accuracy": 0.9828978622327791,
+    "Precision": 0.9828708315881145,
+    "Recall": 0.9828978622327791,
+    "F1_Score": 0.9828811787457006,
+    "Training_Time_s": 229.78341722488403
+}

@@ -1,0 +1,77 @@
+{
+    "phase": "Phase 5",
+    "PCA": false,
+    "linear_implementation": "LinearSVC",
+    "rbf_implementation": "SVC",
+    "polynomial_implementation": "SVC",
+    "random_state": 42,
+    "class_names": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "feature_files": {
+        "VGG16": {
+            "train": "vgg16_train.npz",
+            "validation": "vgg16_validation.npz",
+            "test": "vgg16_test.npz"
+        },
+        "MobileNetV2": {
+            "train": "mobilenet_train.npz",
+            "validation": "mobilenet_validation.npz",
+            "test": "mobilenet_test.npz"
+        },
+        "ConvNeXt": {
+            "train": "convnext_train.npz",
+            "validation": "convnext_validation.npz",
+            "test": "convnext_test.npz"
+        }
+    },
+    "feature_configurations": {
+        "VGG16": [
+            "VGG16"
+        ],
+        "MobileNetV2": [
+            "MobileNetV2"
+        ],
+        "ConvNeXt": [
+            "ConvNeXt"
+        ],
+        "VGG16_plus_MobileNetV2": [
+            "VGG16",
+            "MobileNetV2"
+        ],
+        "VGG16_plus_ConvNeXt": [
+            "VGG16",
+            "ConvNeXt"
+        ],
+        "MobileNetV2_plus_ConvNeXt": [
+            "MobileNetV2",
+            "ConvNeXt"
+        ],
+        "VGG16_plus_MobileNetV2_plus_ConvNeXt": [
+            "VGG16",
+            "MobileNetV2",
+            "ConvNeXt"
+        ]
+    },
+    "svm_configurations": {
+        "Linear": {
+            "kernel": "linear",
+            "C": 1.0
+        },
+        "RBF": {
+            "kernel": "rbf",
+            "C": 1.0,
+            "gamma": "scale"
+        },
+        "Polynomial": {
+            "kernel": "poly",
+            "C": 1.0,
+            "degree": 3,
+            "gamma": "scale",
+            "coef0": 0.0
+        }
+    }
+}
