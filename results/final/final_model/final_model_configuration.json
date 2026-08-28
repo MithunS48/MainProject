@@ -1,0 +1,28 @@
+{
+    "phase": "Phase 6",
+    "feature_models": [
+        "MobileNetV2",
+        "ConvNeXt"
+    ],
+    "feature_dimensions": {
+        "MobileNetV2": 1280,
+        "ConvNeXt": 768,
+        "Fused": 2048
+    },
+    "fusion": true,
+    "pca": false,
+    "classifier": "SVM",
+    "kernel": "Polynomial",
+    "C": 1.0,
+    "degree": 3,
+    "gamma": "scale",
+    "coef0": 0.0,
+    "random_state": 42,
+    "classes": [
+        "EUS",
+        "gill",
+        "healthy",
+        "red_spot"
+    ],
+    "source_phase5_model": "D:\\MainProject\\results\\svm_kernel\\models\\MobileNetV2_plus_ConvNeXt_Polynomial.joblib"
+}

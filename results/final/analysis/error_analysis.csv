@@ -1,0 +1,10 @@
+True_Class,Predicted_Class,Count
+EUS,red_spot,14
+red_spot,EUS,11
+red_spot,gill,4
+gill,EUS,2
+EUS,gill,1
+healthy,EUS,1
+EUS,healthy,1
+healthy,red_spot,1
+red_spot,healthy,1

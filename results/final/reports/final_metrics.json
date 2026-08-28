@@ -1,0 +1,21 @@
+{
+    "model": "MobileNetV2 + ConvNeXt",
+    "feature_dimension": 2048,
+    "pca": false,
+    "classifier": "SVM",
+    "kernel": "Polynomial",
+    "C": 1.0,
+    "degree": 3,
+    "gamma": "scale",
+    "coef0": 0.0,
+    "training_samples": 8395,
+    "test_samples": 2105,
+    "accuracy": 0.9828978622327791,
+    "accuracy_percent": 98.28978622327791,
+    "weighted_precision": 0.9828708315881145,
+    "weighted_recall": 0.9828978622327791,
+    "weighted_f1": 0.9828811787457006,
+    "correct_predictions": 2069,
+    "incorrect_predictions": 36,
+    "macro_auc": 0.9988558930873406
+}
