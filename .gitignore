@@ -21,6 +21,10 @@ venv/
 Thumbs.db
 
 node_modules/
-# Deep learning trained models and checkpoints
-deep_learning/models/*.keras
-deep_learning/results/*/checkpoints/
+
+# Extracted weights folder
+results/**/extracted/
+
+# ConvNeXt features
+results/features/convnext_*.npz
+results/features/fused_all_*.npz
