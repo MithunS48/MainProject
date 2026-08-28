@@ -1,0 +1,120 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        ocean: {
+          50: "#eefbff",
+          100: "#d9f5ff",
+          200: "#b8ecff",
+          300: "#84dfff",
+          400: "#46c9ff",
+          500: "#1cabf2",
+          600: "#0c88ce",
+          700: "#0d6da7",
+          800: "#115c89",
+          900: "#134d72",
+          950: "#0b3049",
+        },
+        seaweed: {
+          50: "#eefdf5",
+          100: "#d6fae4",
+          200: "#b0f3cd",
+          300: "#78e6ac",
+          400: "#40d287",
+          500: "#1ab469",
+          600: "#0f9155",
+          700: "#107347",
+          800: "#125c3c",
+          900: "#114c33",
+          950: "#062b1c",
+        },
+        coral: {
+          50: "#fff3f0",
+          100: "#ffe3dc",
+          200: "#ffc9bb",
+          300: "#ffa389",
+          400: "#ff6f4f",
+          500: "#f8471f",
+          600: "#e12f0f",
+          700: "#bb230d",
+          800: "#992013",
+          900: "#7f1f14",
+        },
+        sand: {
+          50: "#fdfbf3",
+          100: "#faf3dd",
+          200: "#f3e3b6",
+          300: "#eace84",
+          400: "#e3b455",
+          500: "#d99a34",
+          600: "#bd7c28",
+        },
+      },
+      fontFamily: {
+        display: ["'Sora'", "system-ui", "sans-serif"],
+        sans: ["'Inter'", "system-ui", "sans-serif"],
+      },
+      backgroundImage: {
+        "ocean-gradient": "linear-gradient(135deg, #0b3049 0%, #0d6da7 45%, #1cabf2 100%)",
+        "aqua-radial": "radial-gradient(circle at 20% 20%, rgba(28,171,242,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(26,180,105,0.2), transparent 40%)",
+      },
+      boxShadow: {
+        glass: "0 8px 32px 0 rgba(11, 48, 73, 0.25)",
+        "glow-ocean": "0 0 40px rgba(28, 171, 242, 0.35)",
+        "glow-seaweed": "0 0 40px rgba(26, 180, 105, 0.3)",
+        "glow-coral": "0 0 40px rgba(248, 71, 31, 0.3)",
+      },
+      keyframes: {
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-14px)" },
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
+          "50%": { transform: "translateY(-10px) rotate(2deg)" },
+        },
+        swim: {
+          "0%": { transform: "translateX(-10%) scaleX(1)" },
+          "49%": { transform: "translateX(105%) scaleX(1)" },
+          "50%": { transform: "translateX(105%) scaleX(-1)" },
+          "99%": { transform: "translateX(-10%) scaleX(-1)" },
+          "100%": { transform: "translateX(-10%) scaleX(1)" },
+        },
+        ripple: {
+          "0%": { transform: "scale(0.8)", opacity: "0.6" },
+          "100%": { transform: "scale(2.2)", opacity: "0" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(28,171,242,0.35)" },
+          "50%": { boxShadow: "0 0 45px rgba(28,171,242,0.65)" },
+        },
+        bubble: {
+          "0%": { transform: "translateY(0) scale(0.8)", opacity: "0" },
+          "10%": { opacity: "0.8" },
+          "100%": { transform: "translateY(-500px) scale(1.1)", opacity: "0" },
+        },
+        wave: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        float: "float 6s ease-in-out infinite",
+        "float-slow": "float-slow 9s ease-in-out infinite",
+        swim: "swim 18s linear infinite",
+        ripple: "ripple 1.8s ease-out infinite",
+        shimmer: "shimmer 2.5s linear infinite",
+        "pulse-glow": "pulse-glow 2.4s ease-in-out infinite",
+        bubble: "bubble 8s linear infinite",
+        wave: "wave 14s linear infinite",
+      },
+    },
+  },
+  plugins: [],
+};

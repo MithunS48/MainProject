@@ -1,0 +1,11 @@
+# ============================================================
+# AquaScan Web Backend — additional dependencies
+# (on top of the existing project's /home/user/webapp/requirements.txt
+#  which already provides tensorflow, scikit-learn, opencv, fastapi, etc.)
+# ============================================================
+
+python-jose[cryptography]==3.5.0
+passlib[bcrypt]==1.7.4
+bcrypt==5.0.0
+sqlalchemy==2.0.52
+email-validator
