@@ -17,7 +17,7 @@ SAMPLE_IMAGE_PATH = (
 IMAGE_SIZE = (224, 224)
 
 OUTPUT_PATH = (
-    PROJECT_ROOT / "src" / "normalization_visualization.png"
+    PROJECT_ROOT / "results" / "dataset" / "normalization_visualization.png"
 )
 
 

@@ -20,7 +20,7 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-OUTPUT_PATH = PROJECT_ROOT / "src" / "augmentation_visualization.png"
+OUTPUT_PATH = PROJECT_ROOT / "results" / "dataset" / "augmentation_visualization.png"
 
 
 # ============================================================
