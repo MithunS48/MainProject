@@ -34,7 +34,24 @@ export const getKernelComparison = () => client.get("/research/kernel-comparison
 export const getErrorAnalysis = () => client.get("/research/error-analysis");
 export const getDatasetStats = () => client.get("/research/dataset-stats");
 
-// ---------- Admin ----------
+// ---------- IoT Water Quality ----------
+export const registerDevice        = (payload) => client.post("/iot/devices/register", payload);
+export const getDeviceStatus       = (deviceId) => client.get(`/iot/devices/${deviceId}`);
+export const getIoTLatest          = (deviceId) => client.get("/iot/readings/latest", { params: { device_id: deviceId } });
+export const getIoTHistory         = (deviceId, params) => client.get("/iot/readings/history", { params: { device_id: deviceId, ...params } });
+export const listIoTDevices        = () => client.get("/iot/devices");
+
+// ---------- IoT Mock (testing without ESP32) ----------
+export const injectMockReading     = (deviceId, params = {}) => client.post("/iot/mock/reading", null, { params: { device_id: deviceId, ...params } });
+export const injectMockBurst       = (deviceId, count = 20) => client.post("/iot/mock/burst", null, { params: { device_id: deviceId, count } });
+export const clearMockReadings      = (deviceId) => client.post("/iot/mock/clear", null, { params: { device_id: deviceId } });
+
+// ---------- Alerts ----------
+export const getAlertStatus        = () => client.get("/alerts/status");
+export const sendTestEmail         = (payload) => client.post("/alerts/test-email", payload);
+export const sendTestSms           = (payload) => client.post("/alerts/test-sms", payload);
+export const triggerIoTAlert       = (payload) => client.post("/alerts/iot", payload);
+export const triggerDiseaseAlert   = (payload) => client.post("/alerts/disease", payload);
 export const getAdminOverview = () => client.get("/admin/overview");
 export const getAdminAnalytics = () => client.get("/admin/analytics");
 export const getAdminUsers = (params) => client.get("/admin/users", { params });

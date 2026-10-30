@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Fish, LayoutDashboard, ScanLine, History, BookOpen, UserCircle,
   Menu, X, LogOut, Users, ClipboardList, BarChart3, FlaskConical,
-  AlertTriangle, Settings2, ChevronRight,
+  AlertTriangle, Settings2, ChevronRight, Activity,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
@@ -14,6 +14,7 @@ const FARMER_NAV = [
   { to: "/dashboard/detect", label: "Detect Disease", icon: ScanLine },
   { to: "/dashboard/history", label: "Prediction History", icon: History },
   { to: "/dashboard/diseases", label: "Disease Information", icon: BookOpen },
+  { to: "/dashboard/water-quality", label: "Water Quality", icon: Activity },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
@@ -28,7 +29,7 @@ const ADMIN_NAV = [
   { to: "/admin/profile", label: "Profile", icon: UserCircle },
 ];
 
-export default function DashboardLayout({ children, variant = "farmer" }) {
+export default function DashboardLayout({ children, variant = "farmer", dark = false }) {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export default function DashboardLayout({ children, variant = "farmer" }) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className={`min-h-screen flex ${dark ? "bg-[#020e1f]" : "bg-slate-50"}`}>
       {/* Desktop sidebar (dark, premium) */}
       <aside className="hidden lg:flex w-72 shrink-0 flex-col bg-ocean-950 border-r border-white/10 fixed inset-y-0">
         <SidebarContent />
@@ -129,17 +130,21 @@ export default function DashboardLayout({ children, variant = "farmer" }) {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-72 min-w-0">
-        <header className="lg:hidden sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setOpen(true)} className="text-slate-700 p-2">
+        <header className={`lg:hidden sticky top-0 z-30 backdrop-blur-lg border-b px-4 py-3 flex items-center justify-between ${
+          dark
+            ? "bg-[#020e1f]/90 border-cyan-900/40"
+            : "bg-white/90 border-slate-200"
+        }`}>
+          <button onClick={() => setOpen(true)} className={dark ? "text-cyan-300 p-2" : "text-slate-700 p-2"}>
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2">
-            <Fish className="w-5 h-5 text-ocean-500" />
-            <span className="font-display font-bold text-slate-900">AquaScan</span>
+            <Fish className={`w-5 h-5 ${dark ? "text-cyan-400" : "text-ocean-500"}`} />
+            <span className={`font-display font-bold ${dark ? "text-white" : "text-slate-900"}`}>AquaScan</span>
           </div>
           <div className="w-9" />
         </header>
-        <main className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">{children}</main>
+        <main className={`p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto ${dark ? "text-white" : ""}`}>{children}</main>
       </div>
     </div>
   );

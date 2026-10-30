@@ -20,7 +20,7 @@ A deep learning research project for classifying fish diseases into 4 categories
 | VGG16 | 92.68% | 0.9266 | 389 min |
 | ConvNeXtTiny | 90.88% | 0.9100 | Early stopped |
 
-**Fusion (VGG16 + MobileNetV2):** 97.62% accuracy
+**Best fusion (MobileNetV2 + ConvNeXt):** 97.77% accuracy
 
 ---
 
@@ -76,6 +76,28 @@ MainProject/
     ├── visualize_augmentation.py   # Visualize all augmentation steps
     └── visualize_normalization.py  # Visualize normalization effect
 ```
+
+**Web Application:**
+
+```
+webapp/
+├── backend/                       # FastAPI backend
+│   └── app/
+│       ├── main.py                 # App entry point + startup
+│       ├── routers/iot.py          # IoT water-quality endpoints
+│       ├── models/models.py        # SQLAlchemy ORM models
+│       └── schemas/schemas.py     # Pydantic request/response schemas
+└── frontend/                      # React + Vite frontend
+    └── src/
+        ├── pages/farmer/
+        │   ├── FarmerDashboard.jsx # Dashboard with live IoT widget
+        │   └── WaterQuality.jsx    # Full water-quality monitoring page
+        └── utils/
+            ├── waterQualityAdvisor.js  # pH/temp → fish impact, recommendations, disease risks
+            └── diseaseInfo.js           # Disease descriptions and management
+
+iot/
+└── firmware/AquaScan_ESP32/        # ESP32 Arduino firmware
 
 ---
 
@@ -146,12 +168,245 @@ All images resized to **224 × 224 × 3**.
 
 | Combination | Accuracy | F1-Score | Feature Dim |
 |---|---|---|---|
-| VGG16 | 94.30% | 0.9429 | 512 |
-| MobileNetV2 | 96.96% | 0.9696 | 1,280 |
-| ConvNeXt | — | — | 768 |
-| VGG16 + MobileNetV2 | **97.62%** | **0.9762** | 1,792 |
-| VGG16 + ConvNeXt | — | — | 1,280 |
-| MobileNetV2 + ConvNeXt | — | — | 2,048 |
-| VGG16 + MobileNetV2 + ConvNeXt | — | — | 2,560 |
+| VGG16 | 94.39% | 0.9438 | 512 |
+| MobileNetV2 | 96.63% | 0.9663 | 1,280 |
+| ConvNeXt | 94.01% | 0.9400 | 768 |
+| VGG16 + MobileNetV2 | 97.43% | 0.9744 | 1,792 |
+| VGG16 + ConvNeXt | 96.39% | 0.9638 | 1,280 |
+| **MobileNetV2 + ConvNeXt** | **97.77%** | **0.9777** | **2,048** |
+| VGG16 + MobileNetV2 + ConvNeXt | 97.53% | 0.9753 | 2,560 |
 
-> ConvNeXt fusion combinations will be added after full training completes.
+---
+
+## IoT Water-Quality Monitoring Module
+
+Integrates an ESP32 + pH sensor + DS18B20 temperature sensor into the
+existing AquaScan web application. Live readings appear on the farmer
+dashboard under **Water Quality**.
+
+### Hardware Requirements
+
+| Component | Details |
+|---|---|
+| ESP32 | Any Wi-Fi-capable variant (ESP32-WROOM-32, ESP32-S3, etc.) |
+| pH sensor module | Analog output; compatible with 3.3 V ADC |
+| DS18B20 | Waterproof probe recommended for pond use |
+| 4.7 kΩ resistor | Pull-up for DS18B20 OneWire data line |
+
+### Wiring
+
+```
+pH sensor module
+  VCC  → ESP32 3.3 V (check your module — some need 5 V)
+  GND  → ESP32 GND
+  A0   → GPIO 34
+
+DS18B20 (waterproof probe)
+  Red   (VCC)  → ESP32 3.3 V
+  Black (GND)  → ESP32 GND
+  Yellow (DATA) → GPIO 4  +  4.7 kΩ pull-up to 3.3 V
+```
+
+### ESP32 Setup
+
+1. Open `iot/firmware/AquaScan_ESP32/AquaScan_ESP32.ino` in Arduino IDE
+   (or use PlatformIO with `iot/firmware/AquaScan_ESP32/platformio.ini`).
+2. Install required libraries via Library Manager:
+   - `OneWire` by Paul Stoffregen
+   - `DallasTemperature` by Miles Burton
+   - `ArduinoJson` v6 by Benoit Blanchon
+3. Fill in the **CONFIGURATION** section:
+   ```cpp
+   const char* WIFI_SSID      = "your-wifi-ssid";
+   const char* WIFI_PASSWORD  = "your-wifi-password";
+   const char* BACKEND_URL    = "http://192.168.1.100:8000";
+   const char* DEVICE_ID      = "ESP32-001";
+   const char* DEVICE_API_KEY = "your-secret-api-key";
+   ```
+4. Flash to the ESP32.
+
+> **Security**: Never commit real credentials to version control.
+
+### pH Sensor Calibration
+
+1. Measure the voltage output at a pH 7 buffer solution and update
+   `PH_VOLTAGE_AT_PH7` in the firmware.
+2. Optionally measure at pH 4 or pH 10 and adjust `PH_SLOPE`.
+
+### Device Registration (one-time)
+
+Before the ESP32 can POST readings, register it through the web app:
+
+1. Log in as a farmer.
+2. Go to **Dashboard → Water Quality**.
+3. Click **Register Device**.
+4. Enter the same `DEVICE_ID` and `DEVICE_API_KEY` as in the firmware.
+5. Save the API key — it is stored as a bcrypt hash and cannot be retrieved.
+
+### Backend API
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/iot/readings` | Device API key (`X-Device-API-Key` header) | ESP32 posts a reading |
+| GET | `/api/iot/readings/latest?device_id=` | JWT Bearer | Latest reading with derived values |
+| GET | `/api/iot/readings/history?device_id=` | JWT Bearer | Paginated reading history |
+| GET | `/api/iot/devices/{device_id}` | JWT Bearer | Device status and thresholds |
+| POST | `/api/iot/devices/register` | JWT Bearer | Register a new device |
+| GET | `/api/iot/devices` | JWT Bearer (admin) | List all devices |
+| POST | `/api/iot/mock/reading` | JWT Bearer | Inject a single mock reading |
+| POST | `/api/iot/mock/burst` | JWT Bearer | Inject multiple readings for charts |
+| POST | `/api/iot/mock/clear` | JWT Bearer | Clear all readings for a device |
+
+#### Example ESP32 payload
+```json
+{
+  "deviceId":    "ESP32-001",
+  "ph":          6.84,
+  "temperature": 28.5,
+  "timestamp":   "2026-09-02T14:30:00"
+}
+```
+
+### Database Schema
+
+Two new tables are added automatically on server startup (SQLAlchemy
+`create_all`):
+
+**`iot_readings`**
+
+| Column | Type | Notes |
+|---|---|---|
+| id | String PK | UUID4 |
+| device_id | String, indexed | e.g. `ESP32-001` |
+| ph | Float | 0 – 14 |
+| temperature | Float | °C |
+| raw_payload | Text | full JSON from device |
+| received_at | DateTime, indexed | server-side timestamp |
+| device_ts | DateTime, nullable | device-reported timestamp |
+
+**`iot_devices`**
+
+| Column | Type | Notes |
+|---|---|---|
+| id | String PK | UUID4 |
+| device_id | String, unique | |
+| api_key_hash | String | bcrypt hash |
+| label | String, nullable | human-friendly name |
+| owner_id | FK → users.id | |
+| is_active | Boolean | |
+| ph_min/max | Float | alert thresholds |
+| temp_min/max | Float | alert thresholds |
+
+### Derived / Calculated Values
+
+Only scientifically defensible values calculable from pH and temperature:
+
+| Value | Formula | Notes |
+|---|---|---|
+| pH status | acidic / normal / alkaline | based on configurable thresholds |
+| [H⁺] concentration | 10^(−pH) mol/L | |
+| pOH | 14 − pH | valid at ~25 °C; approximate otherwise |
+| Temperature status | too_low / normal / too_high | based on configurable thresholds |
+| Alerts | threshold comparison | configurable per device |
+
+> Turbidity, TDS, dissolved oxygen, nitrate etc. are **not** calculated
+> from pH/temperature — dedicated sensors are required for those.
+
+### Running the IoT Module
+
+```powershell
+# Start backend (from webapp/backend/)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Start frontend (from webapp/frontend/)
+npm run dev
+```
+
+Navigate to `http://localhost:5173/dashboard/water-quality` after logging in
+as a farmer.
+
+### Running IoT Tests
+
+```powershell
+cd webapp/backend
+pip install pytest httpx
+pytest tests/test_iot.py -v
+```
+
+### Complete Data Flow
+
+```
+DS18B20 ──┐
+           ├─► ESP32 (reads every 60 s)
+pH sensor ─┘       │
+                    │  POST /api/iot/readings
+                    │  Header: X-Device-API-Key
+                    ▼
+             FastAPI backend
+                    │  validates + stores IoTReading in SQLite
+                    ▼
+             iot_readings table
+                    │
+                    │  GET /api/iot/devices/{id}      (dashboard polls every 30 s)
+                    │  GET /api/iot/readings/history
+                    ▼
+             React frontend
+             /dashboard
+                    │
+                    ▼
+          ┌─────────────────────────────┐
+          │  Water Quality Widget         │
+          │  • pH gauge + status          │
+          │  • Temperature gauge + status │
+          │  • Overall condition banner    │
+          │  • Fish impact explanation     │
+          │  • Recommended actions         │
+          │  • Disease risk tags            │
+          │  • Auto-refresh every 30 s     │
+          └─────────────────────────────┘
+```
+
+### Water Quality Advisor
+
+The farmer dashboard includes an intelligent advisor that analyzes live pH
+and temperature readings and provides real-time guidance:
+
+| Feature | Description |
+|---|---|---|
+| **Condition Assessment** | Classifies overall water quality as Optimal / Warning / Critical based on pH (6.5–8.5) and temperature (22–30 °C) |
+| **Fish Impact** | Explains what is physically happening to the fish at the current readings (e.g. gill damage, immune suppression, oxygen depletion) |
+| **Recommendations** | Step-by-step actionable solutions (lime dosing, water exchange %, aeration, shading nets, feeding adjustments) |
+| **Disease Risk Prediction** | Lists diseases likely to appear if conditions persist (EUS, Gill Disease, Red Spot, Columnaris, Saprolegniasis, etc.) |
+
+The advisor covers the full pH range (0–14) and temperature range
+(-10 to 40 °C) with specific advice at each severity level.
+
+### Mock / Test Mode
+
+For testing the dashboard without an ESP32 connected, mock endpoints are
+available under the **Test Mode** panel on the Water Quality page:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/iot/mock/reading?device_id=` | Inject a single random or custom reading |
+| POST | `/api/iot/mock/burst?device_id=&count=20` | Inject 20 readings with drift to populate charts |
+| POST | `/api/iot/mock/clear?device_id=` | Delete all readings for a device |
+
+The mock panel lets you specify custom pH and temperature values, or leave
+them blank for realistic random values. The **+20 Readings** button generates
+a time series with slight drift so the history charts display properly.
+
+### Adding Future Sensors
+
+The schema is designed for extension. To add turbidity or TDS:
+
+1. Add nullable columns to `IoTReading` in `models.py`:
+   ```python
+   turbidity = Column(Float, nullable=True)  # NTU
+   ```
+2. Add fields to `IoTReadingIn` / `IoTReadingOut` schemas.
+3. Update `_derive()` in `iot.py` for new derived values.
+4. Update ESP32 firmware to read and include the new sensor.
+5. Add chart panels to `WaterQuality.jsx`.
+
+No existing data or endpoints are affected.

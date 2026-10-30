@@ -29,7 +29,7 @@ from app.core.database import Base, engine, SessionLocal
 from app.core.config import STATIC_DIR, ADMIN_INVITE_CODE
 from app.core.security import hash_password
 from app.models.models import User, UserRole
-from app.routers import auth, predict, users, admin, research
+from app.routers import auth, predict, users, admin, research, iot, alerts
 
 # ------------------------------------------------------------
 # Create DB tables
@@ -95,6 +95,8 @@ app.include_router(predict.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(research.router)
+app.include_router(iot.router)
+app.include_router(alerts.router)
 
 
 @app.get("/", tags=["Health"])

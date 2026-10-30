@@ -72,3 +72,57 @@ class Prediction(Base):
     created_at = Column(DateTime, default=utcnow)
 
     user = relationship("User", back_populates="predictions")
+
+
+# ============================================================
+# IoT — WATER QUALITY MONITORING
+# ============================================================
+
+class IoTReading(Base):
+    """
+    Stores a single sensor reading posted by an ESP32 device.
+
+    Additional sensors (turbidity, TDS/EC, DO) can be added here
+    later as nullable columns without breaking existing readings.
+    """
+    __tablename__ = "iot_readings"
+
+    id           = Column(String,  primary_key=True, default=gen_uuid)
+    device_id    = Column(String,  nullable=False, index=True)   # e.g. "ESP32-001"
+    api_key_hash = Column(String,  nullable=True)                # hashed device API key
+    ph           = Column(Float,   nullable=False)               # 0 – 14
+    temperature  = Column(Float,   nullable=False)               # °C
+    # ── extensibility placeholders (nullable) ──────────────────
+    # turbidity    = Column(Float, nullable=True)   # NTU — add when sensor present
+    # tds          = Column(Float, nullable=True)   # ppm — add when sensor present
+    # dissolved_o2 = Column(Float, nullable=True)   # mg/L — add when sensor present
+    raw_payload  = Column(Text,    nullable=True)                # full JSON from device
+    received_at  = Column(DateTime, default=utcnow, index=True)  # server-side timestamp
+    device_ts    = Column(DateTime, nullable=True)               # device-reported timestamp
+
+
+class IoTDevice(Base):
+    """
+    Registered ESP32 devices.  A device must be registered before it
+    can POST readings (checked via hashed API key).
+
+    A single device can be shared across multiple farm users, or each
+    farmer can register their own device.
+    """
+    __tablename__ = "iot_devices"
+
+    id           = Column(String,  primary_key=True, default=gen_uuid)
+    device_id    = Column(String,  unique=True, nullable=False, index=True)
+    api_key_hash = Column(String,  nullable=False)    # bcrypt hash of the plain API key
+    label        = Column(String,  nullable=True)     # human-friendly name
+    owner_id     = Column(String,  ForeignKey("users.id"), nullable=True, index=True)
+    is_active    = Column(Boolean, default=True)
+    created_at   = Column(DateTime, default=utcnow)
+
+    # thresholds (configurable per device)
+    ph_min       = Column(Float, default=6.5)
+    ph_max       = Column(Float, default=8.5)
+    temp_min     = Column(Float, default=20.0)
+    temp_max     = Column(Float, default=32.0)
+
+    owner = relationship("User", backref="iot_devices")

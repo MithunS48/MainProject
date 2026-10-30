@@ -143,3 +143,79 @@ class DiseaseDistributionItem(BaseModel):
 
 
 Token.model_rebuild()
+
+
+# ============================================================
+# IoT — WATER QUALITY
+# ============================================================
+
+class IoTReadingIn(BaseModel):
+    """Payload sent by the ESP32 to POST /api/iot/readings."""
+    deviceId:   str
+    ph:         float
+    temperature: float
+    timestamp:  Optional[str] = None   # ISO-8601 from device; server adds received_at
+
+    @field_validator("ph")
+    @classmethod
+    def ph_range(cls, v):
+        if not (0.0 <= v <= 14.0):
+            raise ValueError("pH must be between 0 and 14.")
+        return round(v, 3)
+
+    @field_validator("temperature")
+    @classmethod
+    def temp_range(cls, v):
+        if not (-10.0 <= v <= 100.0):
+            raise ValueError("Temperature out of plausible range (-10 to 100 °C).")
+        return round(v, 2)
+
+
+class IoTReadingOut(BaseModel):
+    """Returned to the frontend."""
+    id:          str
+    device_id:   str
+    ph:          float
+    temperature: float
+    received_at: datetime
+    device_ts:   Optional[datetime] = None
+
+    # derived (computed, not stored)
+    ph_status:        str   # "acidic" / "normal" / "alkaline"
+    temp_status:      str   # "too_low" / "normal" / "too_high"
+    h_ion_conc:       float # [H⁺] = 10^(-pH)
+    poh:              float # pOH = 14 - pH
+    alerts:           List[str]  # human-readable alert messages
+
+    class Config:
+        from_attributes = True
+
+
+class IoTDeviceStatus(BaseModel):
+    device_id:    str
+    label:        Optional[str]
+    is_active:    bool
+    online:       bool          # True if reading within last 5 minutes
+    last_seen:    Optional[datetime]
+    ph_min:       float
+    ph_max:       float
+    temp_min:     float
+    temp_max:     float
+    latest:       Optional[IoTReadingOut] = None
+
+
+class IoTDeviceRegister(BaseModel):
+    device_id:  str
+    api_key:    str     # plain-text; stored as bcrypt hash
+    label:      Optional[str] = None
+    ph_min:     float = 6.5
+    ph_max:     float = 8.5
+    temp_min:   float = 20.0
+    temp_max:   float = 32.0
+
+
+class PaginatedIoTReadings(BaseModel):
+    items:      List[IoTReadingOut]
+    total:      int
+    page:       int
+    page_size:  int

@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   ScanLine, History, BookOpen, ArrowRight, TrendingUp, Fish,
-  CheckCircle2, AlertTriangle, Sparkles,
+  CheckCircle2, AlertTriangle, Sparkles, Droplets, Thermometer,
+  Wifi, WifiOff, ShieldAlert, Lightbulb, Activity, Clock, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { getMyPredictions } from "../../api/endpoints";
+import { getMyPredictions, getDeviceStatus } from "../../api/endpoints";
 import { getDiseaseInfo } from "../../utils/diseaseInfo";
+import { getWaterQualityAdvice } from "../../utils/waterQualityAdvisor";
 import { formatDateTime } from "../../utils/format";
 import StatCard from "../../components/ui/StatCard";
 import OceanBackground from "../../components/OceanBackground";
@@ -17,6 +19,36 @@ export default function FarmerDashboard() {
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, healthy: 0, disease: 0 });
+
+  // ── IoT water quality state ─────────────────────────────────────────────
+  const [iotStatus, setIotStatus] = useState(null);
+  const [iotLoading, setIotLoading] = useState(false);
+  const [iotError, setIotError] = useState("");
+  const iotPollRef = useRef(null);
+  const ACTIVE_DEVICE_KEY = "iot_device_id";
+
+  const fetchIoTData = useCallback(async () => {
+    const deviceId = localStorage.getItem(ACTIVE_DEVICE_KEY);
+    if (!deviceId) {
+      setIotError("");
+      return;
+    }
+    setIotLoading(true);
+    try {
+      const res = await getDeviceStatus(deviceId);
+      setIotStatus(res.data);
+      setIotError("");
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setIotError("Device not registered. Go to Water Quality page to set up.");
+      } else {
+        setIotError("Could not fetch sensor data.");
+      }
+      setIotStatus(null);
+    } finally {
+      setIotLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -40,6 +72,13 @@ export default function FarmerDashboard() {
       }
     })();
   }, []);
+
+  // ── Poll IoT data every 30s ──────────────────────────────────────────────
+  useEffect(() => {
+    fetchIoTData();
+    iotPollRef.current = setInterval(fetchIoTData, 30_000);
+    return () => clearInterval(iotPollRef.current);
+  }, [fetchIoTData]);
 
   return (
     <div className="space-y-8">
@@ -73,6 +112,13 @@ export default function FarmerDashboard() {
         <StatCard icon={CheckCircle2} label="Healthy Results" value={stats.healthy} accent="seaweed" delay={0.05} />
         <StatCard icon={AlertTriangle} label="Disease Detected" value={stats.disease} accent="coral" delay={0.1} />
       </div>
+
+      {/* ── Water Quality Live Monitor ────────────────────────────────────── */}
+      <WaterQualityWidget
+        status={iotStatus}
+        loading={iotLoading}
+        error={iotError}
+      />
 
       {/* Quick actions */}
       <div className="grid sm:grid-cols-3 gap-4">
@@ -161,6 +207,269 @@ export default function FarmerDashboard() {
             })}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// WATER QUALITY WIDGET
+// ════════════════════════════════════════════════════════════════════════════
+
+const LEVEL_STYLES = {
+  normal:  { bg: "bg-green-50",   border: "border-green-200",   text: "text-green-700",   badge: "bg-green-100 text-green-700" },
+  warning: { bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700",   badge: "bg-amber-100 text-amber-700" },
+  danger:  { bg: "bg-red-50",     border: "border-red-200",     text: "text-red-700",     badge: "bg-red-100 text-red-700" },
+};
+
+const LEVEL_ICONS = {
+  normal:  ShieldCheck,
+  warning: AlertTriangle,
+  danger:  ShieldAlert,
+};
+
+function WaterQualityWidget({ status, loading, error }) {
+  const r = status?.latest;
+  const advice = r ? getWaterQualityAdvice(r.ph, r.temperature) : null;
+
+  // ── No device registered ──────────────────────────────────────────────
+  if (error && !status) {
+    return (
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Droplets className="w-5 h-5 text-ocean-500" />
+          <h2 className="font-display font-semibold text-slate-900">Water Quality Monitor</h2>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-slate-500">
+          <AlertTriangle className="w-4 h-4 text-amber-400" />
+          {error}
+          <Link to="/dashboard/water-quality" className="text-ocean-600 hover:text-ocean-700 font-medium ml-1">
+            Set up →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Loading state ─────────────────────────────────────────────────────
+  if (loading && !status) {
+    return (
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Droplets className="w-5 h-5 text-ocean-500" />
+          <h2 className="font-display font-semibold text-slate-900">Water Quality Monitor</h2>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="h-28 rounded-xl bg-slate-100 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── No data yet ────────────────────────────────────────────────────────
+  if (!status || !r) {
+    return (
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Droplets className="w-5 h-5 text-ocean-500" />
+          <h2 className="font-display font-semibold text-slate-900">Water Quality Monitor</h2>
+        </div>
+        <p className="text-sm text-slate-500">
+          No sensor data yet. Register your ESP32 device on the{" "}
+          <Link to="/dashboard/water-quality" className="text-ocean-600 hover:text-ocean-700 font-medium">
+            Water Quality
+          </Link>{" "}
+          page.
+        </p>
+      </div>
+    );
+  }
+
+  const overallStyle = LEVEL_STYLES[advice.overallLevel];
+  const OverallIcon  = LEVEL_ICONS[advice.overallLevel];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card rounded-2xl p-6 space-y-5"
+    >
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <Droplets className="w-5 h-5 text-ocean-500" />
+          <h2 className="font-display font-semibold text-slate-900">Water Quality Monitor</h2>
+        </div>
+        <div className="flex items-center gap-3">
+          {status.online ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600">
+              <Wifi className="w-3.5 h-3.5" /> Online
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+              <WifiOff className="w-3.5 h-3.5" /> Offline
+            </span>
+          )}
+          <span className="text-xs text-slate-400 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {r.device_ts ? formatDateTime(r.device_ts) : formatDateTime(r.received_at)}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Overall Status Banner ───────────────────────────────────────── */}
+      <div className={`rounded-xl px-4 py-3 flex items-center gap-3 ${overallStyle.bg} ${overallStyle.border} border`}>
+        <OverallIcon className={`w-5 h-5 ${overallStyle.text}`} />
+        <div>
+          <span className={`text-sm font-semibold ${overallStyle.text}`}>
+            {advice.overallLevel === "normal"
+              ? "Water conditions are optimal — fish are safe."
+              : advice.overallLevel === "warning"
+              ? "Water conditions need attention — fish are under stress."
+              : "Critical water conditions — immediate action required!"}
+          </span>
+        </div>
+        <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold ${overallStyle.badge}`}>
+          {advice.overallLevel.toUpperCase()}
+        </span>
+      </div>
+
+      {/* ── pH + Temp Cards ─────────────────────────────────────────────── */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <SensorCard
+          icon={Droplets}
+          title="pH Level"
+          value={r.ph?.toFixed(2)}
+          advice={advice.ph}
+        />
+        <SensorCard
+          icon={Thermometer}
+          title="Temperature"
+          value={`${r.temperature?.toFixed(1)}°C`}
+          advice={advice.temp}
+        />
+      </div>
+
+      {/* ── Fish Impact ────────────────────────────────────────────────── */}
+      {advice.hasIssues && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <Fish className="w-4 h-4 text-slate-400" /> What's happening to your fish
+          </h3>
+          {advice.ph?.fishImpact?.length > 0 && advice.ph.level !== "normal" && (
+            <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+              <span className="text-xs font-semibold text-slate-500">pH — {advice.ph.label}</span>
+              <ul className="space-y-1">
+                {advice.ph.fishImpact.map((impact, i) => (
+                  <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                    <span className="text-slate-300 mt-0.5">•</span> {impact}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {advice.temp?.fishImpact?.length > 0 && advice.temp.level !== "normal" && (
+            <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+              <span className="text-xs font-semibold text-slate-500">Temperature — {advice.temp.label}</span>
+              <ul className="space-y-1">
+                {advice.temp.fishImpact.map((impact, i) => (
+                  <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                    <span className="text-slate-300 mt-0.5">•</span> {impact}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Recommendations ─────────────────────────────────────────────── */}
+      {advice.hasIssues && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-amber-400" /> Recommended Actions
+          </h3>
+          {advice.ph?.recommendations?.length > 0 && advice.ph.level !== "normal" && (
+            <div className="rounded-xl bg-ocean-50 border border-ocean-100 p-3 space-y-1">
+              <span className="text-xs font-semibold text-ocean-600">Fix pH — {advice.ph.label}</span>
+              <ul className="space-y-1">
+                {advice.ph.recommendations.map((rec, i) => (
+                  <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                    <span className="text-ocean-300 mt-0.5">•</span> {rec}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {advice.temp?.recommendations?.length > 0 && advice.temp.level !== "normal" && (
+            <div className="rounded-xl bg-orange-50 border border-orange-100 p-3 space-y-1">
+              <span className="text-xs font-semibold text-orange-600">Fix Temperature — {advice.temp.label}</span>
+              <ul className="space-y-1">
+                {advice.temp.recommendations.map((rec, i) => (
+                  <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                    <span className="text-orange-300 mt-0.5">•</span> {rec}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Disease Risks ──────────────────────────────────────────────── */}
+      {advice.diseaseRisks.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-coral-400" /> Likely Diseases in These Conditions
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {advice.diseaseRisks.map((disease, i) => (
+              <span
+                key={i}
+                className="text-xs font-medium px-3 py-1.5 rounded-full bg-coral-50 text-coral-700 border border-coral-100"
+              >
+                {disease}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400">
+            These diseases are more likely to appear if current conditions persist. Monitor your fish closely for symptoms and consider using the disease detection tool.
+          </p>
+        </div>
+      )}
+
+      {/* ── Footer link ────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+        <span className="text-xs text-slate-400 flex items-center gap-1">
+          <Activity className="w-3 h-3" /> Auto-refresh every 30s
+        </span>
+        <Link to="/dashboard/water-quality" className="text-sm text-ocean-600 hover:text-ocean-700 font-medium">
+          Detailed view →
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Individual Sensor Card ───────────────────────────────────────────────────
+function SensorCard({ icon: Icon, title, value, advice }) {
+  if (!advice) return null;
+  const style = LEVEL_STYLES[advice.level];
+
+  return (
+    <div className={`rounded-xl p-4 border ${style.border} ${style.bg}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+          <Icon className="w-4 h-4" /> {title}
+        </div>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style.badge}`}>
+          {advice.label}
+        </span>
+      </div>
+      <div className="text-3xl font-extrabold text-slate-800">
+        {value}
       </div>
     </div>
   );
