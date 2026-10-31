@@ -7,7 +7,7 @@ import {
   Wifi, WifiOff, ShieldAlert, Lightbulb, Activity, Clock, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { getMyPredictions, getDeviceStatus } from "../../api/endpoints";
+import { getMyPredictions, getBlynkLatest } from "../../api/endpoints";
 import { getDiseaseInfo } from "../../utils/diseaseInfo";
 import { getWaterQualityAdvice } from "../../utils/waterQualityAdvisor";
 import { formatDateTime } from "../../utils/format";
@@ -28,21 +28,31 @@ export default function FarmerDashboard() {
   const ACTIVE_DEVICE_KEY = "iot_device_id";
 
   const fetchIoTData = useCallback(async () => {
-    const deviceId = localStorage.getItem(ACTIVE_DEVICE_KEY);
-    if (!deviceId) {
-      setIotError("");
-      return;
-    }
     setIotLoading(true);
     try {
-      const res = await getDeviceStatus(deviceId);
-      setIotStatus(res.data);
+      const res = await getBlynkLatest();
+      // Map Blynk response into the shape WaterQualityWidget expects
+      setIotStatus({
+        online: true,
+        latest: {
+          ph:          res.data.ph,
+          temperature: res.data.temperature,
+          ph_status:   res.data.ph_status,
+          temp_status: res.data.temp_status,
+          alerts:      res.data.alerts,
+          received_at: new Date().toISOString(),
+        },
+        ph_min:   6.5,
+        ph_max:   8.5,
+        temp_min: 20.0,
+        temp_max: 32.0,
+      });
       setIotError("");
     } catch (err) {
-      if (err.response?.status === 404) {
-        setIotError("Device not registered. Go to Water Quality page to set up.");
+      if (err.response?.status === 502) {
+        setIotError("ESP32 is offline. Check your device is powered on and connected to Wi-Fi.");
       } else {
-        setIotError("Could not fetch sensor data.");
+        setIotError("Could not fetch sensor data from Blynk Cloud.");
       }
       setIotStatus(null);
     } finally {

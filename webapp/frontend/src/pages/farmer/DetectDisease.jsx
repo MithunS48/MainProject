@@ -31,20 +31,20 @@ const STAGES = [
 export default function DetectDisease() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [stage, setStage] = useState(-1); // -1 = idle, 0..N-1 = analyzing, N = done
+  const [stage, setStage] = useState(-1);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);   // null | { type: "invalid_image"|"generic", message: string }
   const [analyzing, setAnalyzing] = useState(false);
   const timers = useRef([]);
 
   const onDrop = useCallback((accepted, rejected) => {
-    setError("");
+    setError(null);
     if (rejected?.length) {
       const r = rejected[0];
       if (r.errors?.[0]?.code === "file-too-large") {
-        setError("File is too large. Maximum size is 10MB.");
+        setError({ type: "generic", message: "File is too large. Maximum size is 10MB." });
       } else {
-        setError("Unsupported file type. Please upload a JPG or PNG image.");
+        setError({ type: "generic", message: "Unsupported file type. Please upload a JPG or PNG image." });
       }
       return;
     }
@@ -69,7 +69,7 @@ export default function DetectDisease() {
     setFile(null);
     setPreview(null);
     setResult(null);
-    setError("");
+    setError(null);
     setStage(-1);
     setAnalyzing(false);
   };
@@ -94,7 +94,7 @@ export default function DetectDisease() {
 
   const handleAnalyze = async () => {
     if (!file) return;
-    setError("");
+    setError(null);
     setAnalyzing(true);
     setStage(0);
 
@@ -102,22 +102,23 @@ export default function DetectDisease() {
     formData.append("file", file);
 
     try {
-      // Kick off the real request and the stage animation in parallel;
-      // we resolve the visible pipeline once BOTH the network call has
-      // returned AND the animation has walked through every stage —
-      // so the UI never claims a stage finished before it actually did.
       const [res] = await Promise.all([
         predictImage(formData),
         runStageAnimation(),
       ]);
-      // Now reveal real per-stage timings by re-running a fast final
-      // pass using the actual measured durations (short, snappy confirm).
-      setStage(STAGES.length); // "done" -> triggers result reveal
+      setStage(STAGES.length);
       setResult(res.data);
     } catch (err) {
-      const detail = err.response?.data?.detail || "Analysis failed. Please try again.";
-      setError(detail);
-      toast.error(detail);
+      const detail = err.response?.data?.detail;
+
+      // Handle structured invalid image error from backend
+      if (err.response?.status === 422 && detail?.error === "invalid_image") {
+        setError({ type: "invalid_image", message: detail.message });
+      } else {
+        const msg = typeof detail === "string" ? detail : "Analysis failed. Please try again.";
+        setError({ type: "generic", message: msg });
+        toast.error(msg);
+      }
       setStage(-1);
     } finally {
       setAnalyzing(false);
@@ -216,9 +217,30 @@ export default function DetectDisease() {
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-coral-50 border border-coral-200 text-coral-600 text-sm rounded-xl px-4 py-3 flex items-center gap-2"
               >
-                <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
+                {error.type === "invalid_image" ? (
+                  <div className="rounded-2xl bg-amber-50 border border-amber-200 p-5 flex gap-4 items-start">
+                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                      <Fish className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-amber-800 text-sm mb-1">
+                        Not a valid fish image
+                      </h4>
+                      <p className="text-amber-700 text-sm">{error.message}</p>
+                      <ul className="mt-3 space-y-1 text-xs text-amber-700">
+                        <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Use a clear, well-lit photo of a fish</li>
+                        <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> The fish should be the main subject</li>
+                        <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Avoid blurry, dark, or blank images</li>
+                        <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Supported formats: JPG, PNG</li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-xl px-4 py-3 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0" /> {error.message}
+                  </div>
+                )}
               </motion.div>
             )}
           </motion.div>
@@ -341,11 +363,11 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
           className="glass-card rounded-2xl p-5 space-y-4"
         >
           <img src={preview} alt="Analyzed fish" className="w-full h-48 object-cover rounded-xl" />
-          <div className="flex items-center gap-2 text-slate-500 text-sm">
+          <div className="flex items-center gap-2 text-sm" style={{ color: "#64748b" }}>
             <Clock className="w-4 h-4" /> {formatDateTime(result.created_at || new Date().toISOString())}
           </div>
           <div>
-            <div className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-2">
+            <div className="text-xs uppercase tracking-wide font-semibold mb-2" style={{ color: "#94a3b8" }}>
               Confidence Breakdown
             </div>
             <div className="space-y-2">
@@ -353,7 +375,7 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
                 const info = getDiseaseInfo(cls);
                 return (
                   <div key={cls}>
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                    <div className="flex justify-between text-xs mb-1" style={{ color: "#64748b" }}>
                       <span>{info.shortName}</span>
                       <span>{(score * 100).toFixed(1)}%</span>
                     </div>
@@ -389,7 +411,7 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
             <h3 className="font-display font-semibold text-slate-900 mb-2 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-ocean-500" /> What This Means
             </h3>
-            <p className="text-slate-600 text-sm leading-relaxed">{diseaseInfo?.summary}</p>
+            <p style={{ color: "#334155" }} className="text-sm leading-relaxed">{diseaseInfo?.summary}</p>
           </div>
 
           {!isHealthy && (
@@ -397,8 +419,8 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
               <h3 className="font-display font-semibold text-slate-900 mb-2">Common Symptoms</h3>
               <ul className="space-y-1.5">
                 {diseaseInfo?.symptoms?.slice(0, 3).map((s) => (
-                  <li key={s} className="flex items-start gap-2 text-sm text-slate-500">
-                    <ChevronRight className="w-4 h-4 text-coral-400 shrink-0 mt-0.5" /> {s}
+                  <li key={s} className="flex items-start gap-2 text-sm" style={{ color: "#334155" }}>
+                    <ChevronRight className="w-4 h-4 text-coral-500 shrink-0 mt-0.5" /> {s}
                   </li>
                 ))}
               </ul>
@@ -409,15 +431,15 @@ function PredictionResult({ result, diseaseInfo, onReset, preview }) {
             <h3 className="font-display font-semibold text-slate-900 mb-2">Recommended Next Steps</h3>
             <ul className="space-y-1.5">
               {diseaseInfo?.management?.slice(0, isHealthy ? 3 : 4).map((s) => (
-                <li key={s} className="flex items-start gap-2 text-sm text-slate-500">
-                  <CheckCircle2 className="w-4 h-4 text-ocean-500 shrink-0 mt-0.5" /> {s}
+                <li key={s} className="flex items-start gap-2 text-sm" style={{ color: "#334155" }}>
+                  <CheckCircle2 className="w-4 h-4 text-ocean-600 shrink-0 mt-0.5" /> {s}
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-500 leading-relaxed">
-            <strong className="text-slate-700">Disclaimer:</strong> This result is generated by an
+          <div className="rounded-xl px-4 py-3 text-xs leading-relaxed" style={{ backgroundColor: "#f1f5f9", border: "1px solid #cbd5e1", color: "#475569" }}>
+            <strong style={{ color: "#1e293b" }}>Disclaimer:</strong> This result is generated by an
             AI-assisted image classification model and is intended to support, not replace,
             professional veterinary or aquaculture-expert judgment. For confirmed diagnosis or
             treatment, please consult a qualified professional.

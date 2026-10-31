@@ -30,6 +30,8 @@ Security notes
 
 import json
 import math
+import httpx
+import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
@@ -397,6 +399,133 @@ def register_device(
             "after this point. Configure it in your ESP32 firmware as "
             "DEVICE_API_KEY."
         ),
+    }
+
+
+# ============================================================
+# BLYNK CLOUD — live sensor data
+# ============================================================
+
+from app.core.config import (
+    BLYNK_AUTH_TOKEN as _DEFAULT_BLYNK_TOKEN,
+    BLYNK_BASE_URL   as _BLYNK_BASE_URL,
+    BLYNK_PIN_TEMP   as _BLYNK_PIN_TEMP,
+    BLYNK_PIN_PH     as _BLYNK_PIN_PH,
+)
+
+
+async def _fetch_blynk_pin(client: httpx.AsyncClient, token: str, pin: str):
+    """Fetch a single virtual pin value from Blynk Cloud."""
+    try:
+        resp = await client.get(
+            f"{_BLYNK_BASE_URL}/get",
+            params={"token": token, pin: ""},
+            timeout=5.0,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, list) and len(data) > 0:
+                return float(data[0])
+            return float(data)
+    except Exception:
+        pass
+    return None
+
+
+def _classify_ph(ph):
+    if ph is None: return "error"
+    if ph < 6.5:   return "acidic"
+    if ph > 8.5:   return "alkaline"
+    return "normal"
+
+
+def _classify_temp(temp):
+    if temp is None:   return "error"
+    if temp < 20.0:    return "too_low"
+    if temp > 32.0:    return "too_high"
+    return "normal"
+
+
+def _build_alerts(ph, temp):
+    alerts = []
+    if ph   is not None and ph   < 6.5:  alerts.append(f"pH too low ({ph:.2f}). Water is acidic.")
+    if ph   is not None and ph   > 8.5:  alerts.append(f"pH too high ({ph:.2f}). Water is alkaline.")
+    if temp is not None and temp < 20.0: alerts.append(f"Temperature too low ({temp:.1f} °C).")
+    if temp is not None and temp > 32.0: alerts.append(f"Temperature too high ({temp:.1f} °C).")
+    return alerts
+
+
+@router.get(
+    "/blynk/status",
+    summary="Check if Blynk ESP32 is online and return latest values",
+    tags=["Blynk"],
+)
+async def get_blynk_status(
+    token: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Checks Blynk Cloud for the latest readings.
+    Uses the built-in token from config — no token needed unless overriding.
+    """
+    use_token = token or _DEFAULT_BLYNK_TOKEN
+    async with httpx.AsyncClient() as client:
+        temperature, ph = await asyncio.gather(
+            _fetch_blynk_pin(client, use_token, _BLYNK_PIN_TEMP),
+            _fetch_blynk_pin(client, use_token, _BLYNK_PIN_PH),
+        )
+    online = temperature is not None or ph is not None
+    return {
+        "online":      online,
+        "temperature": temperature,
+        "ph":          ph,
+        "ph_status":   _classify_ph(ph),
+        "temp_status": _classify_temp(temperature),
+        "alerts":      _build_alerts(ph, temperature),
+        "source":      "Blynk Cloud",
+    }
+
+
+@router.get(
+    "/blynk/latest",
+    summary="Fetch live pH and temperature from Blynk Cloud",
+    tags=["Blynk"],
+)
+async def get_blynk_latest(
+    token: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Returns the latest sensor values from Blynk Cloud.
+    Uses the built-in default token — no configuration needed.
+    """
+    use_token = token or _DEFAULT_BLYNK_TOKEN
+    if not use_token:
+        raise HTTPException(status_code=400, detail="No Blynk auth token configured.")
+
+    async with httpx.AsyncClient() as client:
+        temperature, ph = await asyncio.gather(
+            _fetch_blynk_pin(client, use_token, _BLYNK_PIN_TEMP),
+            _fetch_blynk_pin(client, use_token, _BLYNK_PIN_PH),
+        )
+
+    if temperature is None and ph is None:
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                "Could not fetch data from Blynk Cloud. "
+                "Check your ESP32 is powered on and connected to Wi-Fi."
+            ),
+        )
+
+    return {
+        "source":      "Blynk Cloud",
+        "temperature": temperature,
+        "ph":          ph,
+        "ph_status":   _classify_ph(ph),
+        "temp_status": _classify_temp(temperature),
+        "alerts":      _build_alerts(ph, temperature),
+        "pins":        {"temperature": _BLYNK_PIN_TEMP, "ph": _BLYNK_PIN_PH},
     }
 
 

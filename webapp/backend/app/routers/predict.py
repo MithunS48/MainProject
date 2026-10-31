@@ -18,7 +18,7 @@ from sqlalchemy import desc
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.config import UPLOADS_DIR, MAX_UPLOAD_SIZE_BYTES, ALLOWED_CONTENT_TYPES
-from app.core.inference import run_prediction, ModelNotAvailableError, check_model_availability
+from app.core.inference import run_prediction, ModelNotAvailableError, InvalidImageError, check_model_availability
 from app.models.models import User, Prediction
 from app.schemas.schemas import PredictionOut, PaginatedPredictions
 
@@ -80,6 +80,16 @@ async def predict_image(
 
     try:
         result = run_prediction(str(saved_path))
+    except InvalidImageError as e:
+        # Clean up the uploaded file — no point storing invalid images
+        saved_path.unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "invalid_image",
+                "message": str(e),
+            },
+        )
     except ModelNotAvailableError as e:
         prediction = Prediction(
             user_id=current_user.id,

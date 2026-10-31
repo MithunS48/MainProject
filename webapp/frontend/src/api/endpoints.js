@@ -46,6 +46,10 @@ export const injectMockReading     = (deviceId, params = {}) => client.post("/io
 export const injectMockBurst       = (deviceId, count = 20) => client.post("/iot/mock/burst", null, { params: { device_id: deviceId, count } });
 export const clearMockReadings      = (deviceId) => client.post("/iot/mock/clear", null, { params: { device_id: deviceId } });
 
+// ---------- Blynk Cloud (direct live data) ----------
+export const getBlynkLatest        = (token) => client.get("/iot/blynk/latest", { params: token ? { token } : {} });
+export const getBlynkStatus        = (token) => client.get("/iot/blynk/status", { params: token ? { token } : {} });
+
 // ---------- Alerts ----------
 export const getAlertStatus        = () => client.get("/alerts/status");
 export const sendTestEmail         = (payload) => client.post("/alerts/test-email", payload);

@@ -48,7 +48,14 @@ FINAL_MODEL_AUC      = 0.9989
 
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
-# ── Email (SMTP) ──────────────────────────────────────────────────────────────
+# ── Blynk Cloud IoT ──────────────────────────────────────────────────────────
+BLYNK_AUTH_TOKEN = os.environ.get(
+    "BLYNK_AUTH_TOKEN",
+    "PYjLXQjPgWdZr3SpLeDImPOiUoz4dZP9"   # default from ESP32 sketch
+)
+BLYNK_BASE_URL = "https://blynk.cloud/external/api"
+BLYNK_PIN_TEMP = "V0"   # DS18B20 temperature
+BLYNK_PIN_PH   = "V1"   # analog pH sensor
 # Set these environment variables to enable email alerts.
 # Example (Gmail):
 #   FISHAPP_SMTP_HOST=smtp.gmail.com

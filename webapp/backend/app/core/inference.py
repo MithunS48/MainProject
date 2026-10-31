@@ -2,32 +2,6 @@
 inference.py
 -------------
 Thin wrapper around the EXISTING ML pipeline in ../../../src/predict.py.
-
-IMPORTANT — why this wrapper exists (and does not just call
-`src/predict.predict()` directly):
-
-  1. The trained ConvNeXt model file
-     (results/ConvNeXt/model/convnext_best.keras) is intentionally
-     excluded from the git repository (see .gitignore) because of its
-     size. It is hosted on Google Drive — see README.md, section
-     "Pre-trained Models & Features". Until that file (and the
-     MobileNetV2 / VGG16 .keras files) are downloaded and placed under
-     results/<Model>/model/, real inference cannot run. This wrapper
-     detects that case and raises a clear, actionable error instead of
-     a generic file-not-found traceback.
-
-  2. The saved SVM artifact
-     (results/final/final_model/mobilenetv2_convnext_polynomial_svm.joblib)
-     is a **dictionary** — {"svm": <sklearn SVC>, "models": [...],
-     "kernel": ..., "class_names": [...], ...} — not a bare SVM object.
-     This wrapper unwraps it correctly (`bundle["svm"]`) before calling
-     `.predict()` / `.decision_function()`.
-
-This file does NOT modify src/predict.py or any other original project
-file. It only imports the already-existing, working helper functions
-(preprocessing + feature extractors) from src/predict.py and adds a
-corrected SVM-loading/prediction step on top, plus model-availability
-checks used by the API layer.
 """
 
 import sys
@@ -36,6 +10,7 @@ import threading
 from pathlib import Path
 from typing import Optional
 
+import cv2
 import numpy as np
 import joblib
 
@@ -57,10 +32,129 @@ SVM_MODEL_PATH = _predict_module.SVM_MODEL_PATH
 _svm_lock = threading.Lock()
 _svm_estimator = None  # the unwrapped sklearn SVC
 
+# ── Confidence threshold below which we reject the prediction ─────────────────
+# If the SVM is not confident enough, the image is likely not a fish.
+# Set high because the model was trained only on fish images and will
+# confidently misclassify non-fish images that share visual features
+# (e.g. red/orange colors → red_spot, blue/green → gill disease).
+CONFIDENCE_THRESHOLD = 0.50
+
 
 class ModelNotAvailableError(RuntimeError):
     """Raised when a required trained-model artifact is missing on disk."""
     pass
+
+
+class InvalidImageError(ValueError):
+    """Raised when the uploaded image does not appear to be a valid fish image."""
+    pass
+
+
+# ============================================================
+# FISH IMAGE VALIDATOR
+# ============================================================
+
+def validate_fish_image(image_path: str) -> None:
+    """
+    Performs fast, pre-model checks to reject obviously invalid images
+    before spending time on the full ML pipeline.
+
+    Checks:
+    1. Image can be decoded and has valid dimensions
+    2. Image is not blank / solid colour (all pixels nearly identical)
+    3. Image is not mostly black or white
+    4. Image has sufficient detail (Laplacian variance — rejects blurry blanks)
+    5. Image aspect ratio is within plausible bounds for a fish photo
+    6. Image does not look like a document/screenshot (text-heavy, mostly white)
+    """
+    img = cv2.imread(str(image_path))
+    if img is None:
+        raise InvalidImageError(
+            "The uploaded file could not be read as an image. "
+            "Please upload a valid JPG or PNG photo of a fish."
+        )
+
+    h, w = img.shape[:2]
+
+    # ── Must be at least 32×32 ───────────────────────────────────────────────
+    if h < 32 or w < 32:
+        raise InvalidImageError(
+            f"Image is too small ({w}×{h} px). "
+            "Please upload a clear, full-size photo of a fish."
+        )
+
+    # ── Resize to 224×224 for fast analysis ─────────────────────────────────
+    small = cv2.resize(img, (224, 224)).astype(np.float32)
+
+    # ── Reject blank / solid-colour images ──────────────────────────────────
+    std_dev = float(np.std(small))
+    if std_dev < 8.0:
+        raise InvalidImageError(
+            "The image appears to be blank or a solid colour. "
+            "Please upload a real photo of a fish."
+        )
+
+    # ── Reject mostly-black images ───────────────────────────────────────────
+    mean_brightness = float(np.mean(small))
+    if mean_brightness < 10.0:
+        raise InvalidImageError(
+            "The image is too dark or mostly black. "
+            "Please upload a well-lit photo of a fish."
+        )
+
+    # ── Reject mostly-white / overexposed images ─────────────────────────────
+    if mean_brightness > 245.0:
+        raise InvalidImageError(
+            "The image is overexposed (almost entirely white). "
+            "Please upload a properly exposed photo of a fish."
+        )
+
+    # ── Reject images with too little detail (blurry or generated) ───────────
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    laplacian_var = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    if laplacian_var < 25.0:
+        raise InvalidImageError(
+            "The image is too blurry or lacks detail. "
+            "Please upload a sharp, clear photo of a fish."
+        )
+
+    # ── Reject document-like / screenshot images ─────────────────────────────
+    gray_small = cv2.cvtColor(small.astype(np.uint8), cv2.COLOR_BGR2GRAY)
+    white_pixel_ratio = float(np.mean(gray_small > 230))
+    if white_pixel_ratio > 0.75:
+        raise InvalidImageError(
+            "This image appears to be a document, screenshot, or blank page. "
+            "Please upload a real photograph of a fish."
+        )
+
+    # ── Reject obvious text documents (very high edge + white ratio) ──────────
+    edges = cv2.Canny(gray_small, 50, 150)
+    edge_ratio = float(np.mean(edges > 0))
+    if edge_ratio > 0.25 and white_pixel_ratio > 0.60:
+        raise InvalidImageError(
+            "This image looks like a document or chart, not a fish photo. "
+            "Please upload a real photograph of a fish."
+        )
+
+
+def validate_prediction_confidence(result: dict) -> None:
+    """
+    After ML inference, check if the model was confident enough.
+    If confidence is below the threshold, the image is likely not a fish.
+    """
+    confidence = result.get("confidence", 0.0)
+    if confidence < CONFIDENCE_THRESHOLD:
+        scores_str = ", ".join(
+            f"{k}: {v*100:.1f}%"
+            for k, v in result["all_scores"].items()
+        )
+        raise InvalidImageError(
+            f"This image does not appear to be a fish. "
+            f"The model could not confidently identify any known fish disease "
+            f"(max confidence: {confidence*100:.1f}%). "
+            f"Please upload a clear photo of a fish. "
+            f"(Scores: {scores_str})"
+        )
 
 
 def check_model_availability() -> dict:
@@ -154,12 +248,17 @@ def preload_models():
 def run_prediction(image_path: str) -> dict:
     """
     Run the real end-to-end pipeline:
-       image -> MobileNetV2 (1280-d) + ConvNeXt (768-d)
+       image -> validate -> MobileNetV2 (1280-d) + ConvNeXt (768-d)
              -> concat (2048-d) -> Polynomial SVM -> class + probabilities
 
-    Raises ModelNotAvailableError with a clear message if any required
-    trained-model file is missing.
+    Raises:
+        InvalidImageError       — if the image is not a valid fish photo
+        ModelNotAvailableError  — if trained model files are missing
     """
+    # ── Step 1: Fast pre-model image validation ──────────────────────────────
+    validate_fish_image(image_path)
+
+    # ── Step 2: Check model availability ────────────────────────────────────
     availability = check_model_availability()
     if not availability["ready"]:
         names = ", ".join(m["description"] for m in availability["missing_files"])
@@ -197,7 +296,7 @@ def run_prediction(image_path: str) -> dict:
     predicted_class = CLASS_NAMES[predicted_idx]
     confidence = float(probabilities[predicted_idx])
 
-    return {
+    result = {
         "predicted_class": predicted_class,
         "predicted_label": CLASS_LABELS[predicted_class],
         "description": CLASS_DESCRIPTIONS[predicted_class],
@@ -215,3 +314,8 @@ def run_prediction(image_path: str) -> dict:
             "svm_inference": round(t_svm * 1000, 1),
         },
     }
+
+    # ── Step 3: Post-model confidence check ──────────────────────────────────
+    validate_prediction_confidence(result)
+
+    return result
